@@ -5,7 +5,7 @@ import PocketBase from "pocketbase";
 import React, { useState } from "react";
 import { Alert, Button, StyleSheet, Text, TextInput, View } from "react-native";
 
-const pb = new PocketBase("http://10.9.121.68:8090");
+const pb = new PocketBase("http://127.0.0.1:8090");
 
 export default function SigninForm() {
   const [nombre, setNombre] = useState("");

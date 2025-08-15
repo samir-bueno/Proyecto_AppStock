@@ -5,11 +5,11 @@ import PocketBase from "pocketbase";
 import React, { useState } from "react";
 import { Alert, Button, StyleSheet, Text, TextInput, View } from "react-native";
 
-const pb = new PocketBase("http://10.9.121.68:8090");
+const pb = new PocketBase("http://127.0.0.1:8090");
 export default function LoginForm() {
   const router = useRouter();
-  const [email, setEmail] = useState();
-  const [contraseña, setContraseña] = useState();
+  const [email, setEmail] = useState<string>("");
+  const [contraseña, setContraseña] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const handleLogin = async () => {
     if (email === "" || contraseña === "") {
@@ -43,6 +43,7 @@ export default function LoginForm() {
         style={styles.input}
         placeholder="Correo electrónico"
         value={email}
+        onChangeText={text => setEmail(text)}
         keyboardType="email-address"
         autoCapitalize="none"
       />
@@ -50,6 +51,7 @@ export default function LoginForm() {
         style={styles.input}
         placeholder="Contraseña"
         value={contraseña}
+        onChangeText={text => setContraseña(text)}
         secureTextEntry
       />
       <Button
