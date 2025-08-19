@@ -1,17 +1,22 @@
-import { Tabs } from "expo-router";
-import React from "react";
-
-import { useColorScheme } from "@/hooks/useColorScheme";
-
+import { useAuth } from "@/contexts/AuthProvider";
+import { Redirect, Stack } from "expo-router";
+import { ActivityIndicator, View } from "react-native";
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
+  const { isAuthenticated, isLoading } = useAuth();
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+  if (!isAuthenticated) {
+    return <Redirect href="/(Auth)/login" />;
+  }
   return (
-    <Tabs>
-      <Tabs.Screen name="index" options={{ headerShown: false }} />
-      <Tabs.Screen name="explore" options={{ headerShown: false }} />
-      <Tabs.Screen name="(Auth)/login" options={{ headerShown: false }} />
-      <Tabs.Screen name="(Auth)/signin" options={{ headerShown: false }} />
-    </Tabs>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="index" />
+      <Stack.Screen name="explore" />
+    </Stack>
   );
 }

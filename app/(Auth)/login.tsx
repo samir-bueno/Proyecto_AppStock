@@ -1,55 +1,39 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { registerUser } from "@/services/pocketBaseService";
+import { loginUser } from "@/services/pocketBaseService";
 import { Link, useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Alert, Button, StyleSheet, TextInput, View } from "react-native";
 
-export default function SigninForm() {
+export default function LoginForm() {
   const router = useRouter();
-  const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
   const [contraseña, setContraseña] = useState("");
-  const [confirmacion, setConfirmacion] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleCrearCuenta = async () => {
-    if (!nombre || !email || !contraseña || !confirmacion) {
+  const handleLogin = async () => {
+    if (!email || !contraseña) {
       Alert.alert("Error", "Por favor, completa todos los campos.");
-      return;
-    }
-    if (contraseña !== confirmacion) {
-      Alert.alert("Error", "Las contraseñas no coinciden.");
       return;
     }
 
     setLoading(true);
-    const { success, error } = await registerUser({
-      name: nombre,
-      email,
-      password: contraseña,
-      passwordConfirm: confirmacion,
-    });
+    const { success, error } = await loginUser(email, contraseña);
 
     if (success) {
-      Alert.alert("¡Éxito!", "Cuenta creada. Verifica tu correo.");
-      router.push("/(tabs)/(Auth)/login");
+      router.replace("/"); // Redirige a la pantalla principal
     } else {
-      Alert.alert("Error", error || "Error al crear la cuenta");
+      const errorMessage = error.includes("Failed to fetch")
+        ? "Error de conexión"
+        : "Credenciales incorrectas";
+      Alert.alert("Error", errorMessage);
     }
     setLoading(false);
   };
 
   return (
     <View style={styles.container}>
-      <ThemedText type="title" style={styles.title}>Crear Cuenta</ThemedText>
-      <TextInput
-        style={styles.input}
-        placeholder="Nombre"
-        value={nombre}
-        onChangeText={setNombre}
-        autoCapitalize="words"
-      />
+      <ThemedText type="title" style={styles.title}>Iniciar sesión</ThemedText>
       <TextInput
         style={styles.input}
         placeholder="Correo electrónico"
@@ -65,22 +49,15 @@ export default function SigninForm() {
         onChangeText={setContraseña}
         secureTextEntry
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Confirmar contraseña"
-        value={confirmacion}
-        onChangeText={setConfirmacion}
-        secureTextEntry
-      />
       <Button
-        title={loading ? "Creando cuenta..." : "Registrarse"}
-        onPress={handleCrearCuenta}
+        title={loading ? "Cargando..." : "Ingresar"}
+        onPress={handleLogin}
         disabled={loading}
       />
       <ThemedView style={styles.footer}>
-        <ThemedText>¿Ya tienes una cuenta?</ThemedText>
-        <Link href="/(tabs)/(Auth)/login" style={styles.link}>
-          <ThemedText type="link">Iniciar Sesión</ThemedText>
+        <ThemedText>¿No tienes una cuenta?</ThemedText>
+        <Link href="/(Auth)/signin" style={styles.link}>
+          <ThemedText type="link">Crea una</ThemedText>
         </Link>
       </ThemedView>
     </View>

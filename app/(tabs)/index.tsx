@@ -1,12 +1,24 @@
 import { ThemedText } from '@/components/ThemedText';
-import { StyleSheet } from 'react-native';
-
+import { useAuth } from '@/contexts/AuthProvider';
+import { useRouter } from "expo-router";
+import { Button, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+
+
 export default function HomeScreen() {
+  const { user, logout } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    logout();
+    router.replace('/(Auth)/login'); // Redirigir a la pantalla de login después de cerrar sesión
+  };
+
   return (
     <SafeAreaView>
-      <ThemedText style={styles.h1}>Bienvenido</ThemedText>
+      <ThemedText style={styles.h1}>Bienvenido {user?.name}</ThemedText>
+      <Button title="Cerrar Sesión" onPress={handleLogout} />
     </SafeAreaView>
   );
 }
