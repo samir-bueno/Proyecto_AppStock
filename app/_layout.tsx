@@ -20,7 +20,7 @@ function AppContent() {
       {isAuthenticated ? (
         <Stack.Screen name="(tabs)" />
       ) : (
-        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(Auth)" />
       )}
       <Stack.Screen name="+not-found" />
     </Stack>

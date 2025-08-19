@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/AuthProvider";
-import { Redirect, Stack } from "expo-router";
+import { Redirect, Tabs } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 export default function TabLayout() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -14,9 +14,11 @@ export default function TabLayout() {
     return <Redirect href="/(Auth)/login" />;
   }
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="explore" />
-    </Stack>
+    <Tabs screenOptions={{ headerShown: false }}>
+      <Tabs.Screen name="index" />
+      <Tabs.Screen name="explore" />
+      <Tabs.Screen name="inventario" />
+      <Tabs.Screen name="resumen" />
+    </Tabs>
   );
 }

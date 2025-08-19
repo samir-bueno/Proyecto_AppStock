@@ -1,10 +1,10 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { loginUser } from "@/services/pocketBaseService";
+import { Image } from "expo-image";
 import { Link, useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Alert, Button, StyleSheet, TextInput, View } from "react-native";
-
 export default function LoginForm() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -33,6 +33,12 @@ export default function LoginForm() {
 
   return (
     <View style={styles.container}>
+      <View style={styles.imageContainer}>
+      <Image
+        style={styles.image}
+        source="https://artely.com.br/site/wp-content/uploads/2023/07/carrefour-logo-01-01.jpg"
+      />
+      </View>
       <ThemedText type="title" style={styles.title}>Iniciar sesión</ThemedText>
       <TextInput
         style={styles.input}
@@ -92,5 +98,15 @@ const styles = StyleSheet.create({
   },
   link: {
     paddingVertical: 10,
+  },
+  image: {
+    borderRadius: "100%",
+    width: 60,
+    height: 60,
+    opacity: 0.8,
+  },
+  imageContainer: {
+    alignItems: "center",
+    borderRadius: "100%" 
   },
 });
