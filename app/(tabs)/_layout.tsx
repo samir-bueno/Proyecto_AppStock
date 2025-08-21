@@ -5,7 +5,7 @@ export default function TabLayout() {
   const { isAuthenticated, isLoading } = useAuth();
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" />
       </View>
     );
@@ -15,9 +15,9 @@ export default function TabLayout() {
   }
   return (
     <Tabs screenOptions={{ headerShown: false }}>
-      <Tabs.Screen name="index" />
-      <Tabs.Screen name="explore" />
+      <Tabs.Screen name="ventas" />
       <Tabs.Screen name="inventario" />
+      <Tabs.Screen name="fiados" />
       <Tabs.Screen name="resumen" />
     </Tabs>
   );

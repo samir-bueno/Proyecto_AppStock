@@ -1,6 +1,6 @@
-import PocketBase from 'pocketbase';
+import PocketBase from "pocketbase";
 
-const POCKETBASE_URL = 'http://10.56.13.11:8090';
+const POCKETBASE_URL = "http://10.9.121.245:8090";
 export const pb = new PocketBase(POCKETBASE_URL);
 
 // Registro de usuario
@@ -15,10 +15,10 @@ export const registerUser = async (data: {
       ...data,
       emailVisibility: true,
     };
-    const record = await pb.collection('users').create(userData);
+    const record = await pb.collection("users").create(userData);
     return { success: true, data: record };
   } catch (error: any) {
-    console.error('Error en registerUser:', error);
+    console.error("Error en registerUser:", error);
     return { success: false, error: error.message };
   }
 };
@@ -26,10 +26,12 @@ export const registerUser = async (data: {
 // Inicio de sesión
 export const loginUser = async (email: string, password: string) => {
   try {
-    const authData = await pb.collection('users').authWithPassword(email, password);
+    const authData = await pb
+      .collection("users")
+      .authWithPassword(email, password);
     return { success: true, user: authData.record };
   } catch (error: any) {
-    console.error('Error en loginUser:', error);
+    console.error("Error en loginUser:", error);
     return { success: false, error: error.message };
   }
 };

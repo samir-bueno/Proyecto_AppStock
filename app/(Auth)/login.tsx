@@ -21,7 +21,7 @@ export default function LoginForm() {
     const { success, error } = await loginUser(email, contraseña);
 
     if (success) {
-      router.replace("/"); // Redirige a la pantalla principal
+      router.replace("/(tabs)/ventas"); // Redirige a la pantalla principal
     } else {
       const errorMessage = error.includes("Failed to fetch")
         ? "Error de conexión"
@@ -34,12 +34,14 @@ export default function LoginForm() {
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
-      <Image
-        style={styles.image}
-        source="https://artely.com.br/site/wp-content/uploads/2023/07/carrefour-logo-01-01.jpg"
-      />
+        <Image
+          style={styles.image}
+          source="https://artely.com.br/site/wp-content/uploads/2023/07/carrefour-logo-01-01.jpg"
+        />
       </View>
-      <ThemedText type="title" style={styles.title}>Iniciar sesión</ThemedText>
+      <ThemedText type="title" style={styles.title}>
+        Iniciar sesión
+      </ThemedText>
       <TextInput
         style={styles.input}
         placeholder="Correo electrónico"
@@ -107,6 +109,6 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     alignItems: "center",
-    borderRadius: "100%" 
+    borderRadius: "100%",
   },
 });
