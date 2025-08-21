@@ -15,7 +15,6 @@ import {
 } from "react-native";
 
 export default function HomeScreen() {
-  // --- Lógica existente ---
   const { user, logout } = useAuth();
   const router = useRouter();
 
@@ -24,12 +23,10 @@ export default function HomeScreen() {
     router.replace("/(Auth)/login");
   };
 
-  // --- Renderizado de la nueva UI ---
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" />
 
-      {/* ===== Encabezado ===== */}
       <LinearGradient
         colors={["#4a00e0", "#8e2de2"]}
         start={{ x: 0, y: 0 }}
@@ -37,7 +34,7 @@ export default function HomeScreen() {
         style={styles.header}
       >
         <View>
-          <ThemedText style={styles.headerTitle}>hola</ThemedText>
+          <ThemedText style={styles.headerTitle}>AppStock</ThemedText>
           <ThemedText style={styles.headerSubtitle}>
             Bienvenido, {user?.name}
           </ThemedText>
@@ -76,6 +73,18 @@ export default function HomeScreen() {
             placeholder="Buscar por nombre..."
             placeholderTextColor="#999"
           />
+        </View>
+
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <FontAwesome name="cart-plus" size={22} color="#333" />
+            <ThemedText style={styles.cardTitle}>Venta Actual</ThemedText>
+          </View>
+          <View style={styles.venta}>
+            <ThemedText darkColor="#999">
+              No hay productos en la venta
+            </ThemedText>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -157,5 +166,8 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
     borderWidth: 1,
     color: "#333",
+  },
+  venta: {
+    alignItems: "center",
   },
 });

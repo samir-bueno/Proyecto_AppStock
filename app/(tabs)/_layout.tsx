@@ -1,6 +1,8 @@
 import { useAuth } from "@/contexts/AuthProvider";
+import { FontAwesome } from "@expo/vector-icons";
 import { Redirect, Tabs } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
+
 export default function TabLayout() {
   const { isAuthenticated, isLoading } = useAuth();
   if (isLoading) {
@@ -15,7 +17,15 @@ export default function TabLayout() {
   }
   return (
     <Tabs screenOptions={{ headerShown: false }}>
-      <Tabs.Screen name="ventas" />
+      <Tabs.Screen
+        name="ventas"
+        options={{
+          title: "ventas",
+          tabBarIcon: ({ color }) => (
+            <FontAwesome name="cart-plus" size={22} color={color} />
+          ),
+        }}
+      />
       <Tabs.Screen name="inventario" />
       <Tabs.Screen name="fiados" />
       <Tabs.Screen name="resumen" />
