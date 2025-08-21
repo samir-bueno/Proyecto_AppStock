@@ -1,110 +1,217 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { ThemedText } from "@/components/ThemedText";
+import { useAuth } from "@/contexts/AuthProvider";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
+import React from "react";
+import {
+  FlatList,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  TouchableOpacity,
+  View
+} from "react-native";
 
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
+// Datos de ejemplo para clientes con fiado
+const sampleClients = [
+  { id: "1", name: "Juan Pérez", debt: 1250.50, phone: "555-1234" },
+  { id: "2", name: "María García", debt: 750.00, phone: "555-5678" },
+  { id: "3", name: "Carlos López", debt: 2300.75, phone: "555-9012" },
+  { id: "4", name: "Ana Martínez", debt: 500.00, phone: "555-3456" },
+  { id: "5", name: "Pedro Rodríguez", debt: 1800.25, phone: "555-7890" },
+];
 
-export default function TabTwoScreen() {
+export default function FiadoScreen() {
+  const { user } = useAuth();
+  const router = useRouter();
+
+  const renderClientItem = ({ item }) => (
+    <TouchableOpacity 
+      style={styles.clientItem}
+      onPress={() => router.push(`/fiado/cliente/${item.id}`)}
+    >
+      <View style={styles.clientInfo}>
+        <ThemedText style={styles.clientName}>{item.name}</ThemedText>
+        <ThemedText style={styles.clientPhone}>{item.phone}</ThemedText>
+      </View>
+      <View style={styles.debtInfo}>
+        <ThemedText style={styles.debtAmount}>${item.debt.toFixed(2)}</ThemedText>
+        <MaterialCommunityIcons name="chevron-right" size={24} color="#999" />
+      </View>
+    </TouchableOpacity>
+  );
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image source={require('@/assets/images/react-logo.png')} style={{ alignSelf: 'center' }} />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Custom fonts">
-        <ThemedText>
-          Open <ThemedText type="defaultSemiBold">app/_layout.tsx</ThemedText> to see how to load{' '}
-          <ThemedText style={{ fontFamily: 'SpaceMono' }}>
-            custom fonts such as this one.
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="light-content" />
+
+      {/* Encabezado */}
+      <LinearGradient
+        colors={["#4a00e0", "#8e2de2"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.header}
+      >
+        <View>
+          <ThemedText style={styles.headerTitle}>Fiado</ThemedText>
+          <ThemedText style={styles.headerSubtitle}>
+            Bienvenido, {user?.name}
           </ThemedText>
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/font">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful <ThemedText type="defaultSemiBold">react-native-reanimated</ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+        </View>
+      </LinearGradient>
+
+      <View style={styles.container}>
+        {/* Tarjeta de título */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <MaterialCommunityIcons name="account-cash" size={24} color="#333" />
+            <ThemedText style={styles.cardTitle}>Cuentas de Fiado</ThemedText>
+          </View>
+          <ThemedText style={styles.cardSubtitle}>
+            Clientes con deuda pendiente
+          </ThemedText>
+        </View>
+
+        {/* Lista de clientes */}
+        <FlatList
+          data={sampleClients}
+          renderItem={renderClientItem}
+          keyExtractor={item => item.id}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+        />
+
+        {/* Botón para agregar cliente */}
+        <TouchableOpacity 
+          style={styles.addButton}
+          onPress={() => router.push("/fiado/agregar")}
+        >
+          <MaterialCommunityIcons name="plus" size={24} color="white" />
+          <ThemedText style={styles.addButtonText}>Agregar Cliente Fiado</ThemedText>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#f4f5f7",
   },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
+  header: {
+    paddingTop: 50,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "white",
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: "white",
+    opacity: 0.9,
+  },
+  container: {
+    flex: 1,
+    padding: 20,
+  },
+  card: {
+    backgroundColor: "white",
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginLeft: 10,
+    color: "#333",
+  },
+  cardSubtitle: {
+    fontSize: 14,
+    color: "#666",
+    marginLeft: 34, // Para alinear con el título
+  },
+  listContent: {
+    paddingBottom: 80, // Espacio para el botón flotante
+  },
+  clientItem: {
+    backgroundColor: "white",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  clientInfo: {
+    flex: 1,
+  },
+  clientName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 4,
+  },
+  clientPhone: {
+    fontSize: 14,
+    color: "#666",
+  },
+  debtInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  debtAmount: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#e74c3c",
+    marginRight: 8,
+  },
+  addButton: {
+    position: "absolute",
+    bottom: 20,
+    right: 20,
+    left: 20,
+    backgroundColor: "#28a745",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  addButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginLeft: 10,
   },
 });
