@@ -1,8 +1,8 @@
 import { ThemedText } from "@/components/ThemedText";
 import { useAuth } from "@/contexts/AuthProvider";
+import { createCustomer, getCustomersByOwner } from "@/services/pocketBaseService";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -17,9 +17,6 @@ import {
   View
 } from "react-native";
 
-// Configuración de PocketBase
-const POCKETBASE_URL = "http://10.9.121.245:8090";
-
 // Interfaces para TypeScript
 interface Client {
   id: string;
@@ -30,100 +27,58 @@ interface Client {
   updated?: string;
 }
 
-interface PocketBaseResponse {
-  items: Client[];
-  page: number;
-  perPage: number;
-  totalItems: number;
-  totalPages: number;
-}
-
-interface NewClient {
-  name: string;
-  phone: string;
-}
-
 export default function FiadoScreen() {
   const { user } = useAuth();
-  const router = useRouter();
-  const [clients, setClients] = useState<Client[]>([]);
+  const [clients, setClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newClient, setNewClient] = useState<NewClient>({
-    name: "",
-    phone: ""
-  });
+  const [newClient, setNewClient] = useState({ name: "", phone: "" });
   const [addingClient, setAddingClient] = useState(false);
 
   // Función para cargar clientes desde PocketBase
   const loadClients = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`${POCKETBASE_URL}/api/collections/customers/records`, {
-        headers: {
-          'Content-Type': 'application/json',
-        }
-      });
-      
-      if (response.ok) {
-        const data: PocketBaseResponse = await response.json();
-        // Filtrar solo los clientes del usuario actual
-        const userClients = data.items.filter(client => client.owner_id === user?.id);
-        setClients(userClients);
-      } else {
-        Alert.alert("Error", "No se pudieron cargar los clientes");
-      }
-    } catch (error) {
-      Alert.alert("Error", "Error de conexión");
-      console.error(error);
-    } finally {
-      setLoading(false);
+    if (!user) return;
+    setLoading(true);
+    const result = await getCustomersByOwner(user.id);
+    if (result.success) {
+      setClients(result.data || []);
+    } else {
+      Alert.alert("Error", result.error);
     }
+    setLoading(false);
   };
 
   // Cargar clientes al montar el componente
   useEffect(() => {
     loadClients();
-  }, []);
+  }, [user]);
 
   // Función para agregar nuevo cliente
   const addNewClient = async () => {
+    if (!user) {
+    Alert.alert("Error", "No hay usuario autenticado");
+    return;
+    }
+
     if (!newClient.name.trim()) {
       Alert.alert("Error", "El nombre es obligatorio");
       return;
     }
 
-    try {
-      setAddingClient(true);
-      const response = await fetch(`${POCKETBASE_URL}/api/collections/customers/records`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...newClient,
-          owner_id: user?.id,
-          phone: newClient.phone || null
-        })
-      });
-
-      if (response.ok) {
-        // Recargar la lista de clientes
-        await loadClients();
-        // Cerrar el formulario y resetear
-        setShowAddForm(false);
-        setNewClient({ name: "", phone: "" });
-        Alert.alert("Éxito", "Cliente agregado correctamente");
-      } else {
-        Alert.alert("Error", "No se pudo agregar el cliente");
-      }
-    } catch (error) {
-      Alert.alert("Error", "Error de conexión");
-      console.error(error);
-    } finally {
-      setAddingClient(false);
+    setAddingClient(true);
+    const result = await createCustomer({ ...newClient, owner_id: user.id });
+    
+    if (result.success) {
+      Alert.alert("Éxito", "Cliente agregado correctamente");
+      await loadClients(); // Recargamos la lista para ver el nuevo cliente
+      setShowAddForm(false);
+      setNewClient({ name: "", phone: "" });
+    } else {
+      Alert.alert("Error", result.error);
     }
+    setAddingClient(false);
   };
+
 
   const renderClientItem = ({ item }: { item: Client }) => (
     <TouchableOpacity 
