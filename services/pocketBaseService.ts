@@ -1,16 +1,10 @@
 import PocketBase from "pocketbase";
 
-const POCKETBASE_URL = "http://10.9.121.245:8090";
+export const POCKETBASE_URL = "http://192.168.0.13:8090";
 export const pb = new PocketBase(POCKETBASE_URL);
 
-// Registro de usuario
-export const registerUser = async (data: {
-  name: string;
-  email: string;
-  password: string;
-  passwordConfirm: string;
-}) => {
-  try {
+//Autenticación
+export const registerUser = async (data: any) => { try {
     const userData = {
       ...data,
       emailVisibility: true,
@@ -20,12 +14,8 @@ export const registerUser = async (data: {
   } catch (error: any) {
     console.error("Error en registerUser:", error);
     return { success: false, error: error.message };
-  }
-};
-
-// Inicio de sesión
-export const loginUser = async (email: string, password: string) => {
-  try {
+  } };
+export const loginUser = async (email: string, password: string) => { try {
     const authData = await pb
       .collection("users")
       .authWithPassword(email, password);
@@ -33,8 +23,58 @@ export const loginUser = async (email: string, password: string) => {
   } catch (error: any) {
     console.error("Error en loginUser:", error);
     return { success: false, error: error.message };
+  } };
+export const isAuthenticated = () => pb.authStore.isValid;
+
+export interface ClientData {
+  name: string;
+  phone?: string;
+  owner_id: string;
+}
+
+// Función para cargar productos de un usuario
+export const getProductsByOwner = async (ownerId: string) => {
+  try {
+    const records = await pb.collection('products').getFullList({
+        filter: `owner_id = "${ownerId}"`,
+    });
+    return { success: true, data: records };
+  } catch (error: any) {
+    return { success: false, error: "No se pudieron cargar los productos" };
   }
 };
 
-// Verificar autenticación
-export const isAuthenticated = () => pb.authStore.isValid;
+// Función para crear un nuevo producto
+export const createProduct = async (productData: any) => {
+  try {
+    // owner_id debe estar en productData
+    const record = await pb.collection('products').create(productData);
+    return { success: true, data: record };
+  } catch (error: any) {
+    return { success: false, error: "No se pudo agregar el producto" };
+  }
+};
+
+// Función para OBTENER los clientes de un usuario
+export const getCustomersByOwner = async (ownerId: string) => {
+  try {
+    const records = await pb.collection('customers').getFullList({
+        filter: `owner_id = "${ownerId}"`,
+    });
+    return { success: true, data: records };
+  } catch (error: any) {
+    console.error("Error en getCustomersByOwner:", error);
+    return { success: false, error: "No se pudieron cargar los clientes" };
+  }
+};
+
+// Función para crear un nuevo cliente fiado
+export const createCustomer = async (customerData: ClientData) => {
+  try {
+    const record = await pb.collection('customers').create(customerData);
+    return { success: true, data: record };
+  } catch (error: any) {
+    console.error("Error en createCustomer:", error);
+    return { success: false, error: "No se pudo agregar el cliente" };
+  }
+};

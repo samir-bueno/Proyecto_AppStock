@@ -1,8 +1,456 @@
-import { Text, View } from "react-native"
-export default function Inventario(){
-    return(
-        <View>
-            <Text>Aca estara el Inventario</Text>
-        </View>
-    )
+import { ThemedText } from "@/components/ThemedText";
+import { useAuth } from "@/contexts/AuthProvider";
+import { createProduct, getProductsByOwner } from "@/services/pocketBaseService";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
+import {
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    Modal,
+    SafeAreaView,
+    StatusBar,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity,
+    View
+} from "react-native";
+
+
+// Configuración de PocketBase
+const POCKETBASE_URL = "http://192.168.0.13:8090";
+
+// Interfaces para TypeScript
+interface NewProduct {
+  product_name: string;
+  quantity: string;
+  price: string;
+  barcode: string;
 }
+
+interface Product {
+  id: string;
+  product_name: string;
+  quantity?: string;
+  owner_id: string;
+  price: string;
+  barcode: string;
+  created?: string;
+  updated?: string;
+}
+
+interface PocketBaseResponse {
+  items: Product[];
+  page: number;
+  perPage: number;
+  totalItems: number;
+  totalPages: number;
+}
+
+export default function InventarioScreen() {
+  const { user } = useAuth();
+  const router = useRouter();
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newProduct, setNewProduct] = useState<NewProduct>({
+    product_name: "",
+    quantity: "",
+    price: "",
+    barcode: ""
+  });
+  const [addingProduct, setAddingProduct] = useState(false);
+  
+
+  // Función para cargar productos desde PocketBase
+  const loadProducts = async () => { 
+    if (!user) return;
+    setLoading(true);
+    const result = await getProductsByOwner(user.id);
+    if (result.success) {
+      setProducts(result.data || []);
+    } else {
+      Alert.alert("Error", result.error);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadProducts();
+  }, [user]);
+
+  // Cargar productos al montar el componente
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  // Función para agregar nuevo producto
+  const addNewProduct = async () => {
+    if (!newProduct.product_name.trim()) {
+      return;
+    }
+    setAddingProduct(true);
+    const result = await createProduct({ ...newProduct, owner_id: user?.id });
+    if (result.success) {
+
+      await loadProducts(); // Recargamos la lista
+      setShowAddForm(false);
+      setNewProduct({ product_name: "", quantity: "", price: "", barcode: "" });
+      Alert.alert("Éxito", "Producto agregado correctamente");
+
+    } else {
+      Alert.alert("Error", result.error);
+    }
+    setAddingProduct(false);
+  };
+
+  const renderProductItem = ({ item }: { item: Product }) => (
+    <TouchableOpacity 
+      style={styles.clientItem}
+      onPress={() => {
+        // Aquí puedes navegar a los detalles del producto si lo necesitas
+        Alert.alert(item.product_name, `Cantidad: ${item.quantity}\nPrecio: ${item.price}\nCódigo de barras: ${item.barcode || "N/A"}`);
+      }}
+    >
+      <View style={styles.clientInfo}>
+        <ThemedText style={styles.clientName}>{item.product_name}</ThemedText>
+        <ThemedText style={styles.clientPhone}>
+          {item.barcode || "Sin código de barras"}
+        </ThemedText>
+      </View>
+      <MaterialCommunityIcons name="chevron-right" size={24} color="#999" />
+    </TouchableOpacity>
+  );
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#4a00e0" />
+          <ThemedText style={styles.loadingText}>Cargando productos...</ThemedText>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <StatusBar barStyle="light-content" />
+      
+      <LinearGradient
+        colors={["#4a00e0", "#8e2de2"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.header}
+      >
+        <View>
+          <ThemedText style={styles.headerTitle}>AppStock</ThemedText>
+          <ThemedText style={styles.headerSubtitle}>
+            Bienvenido, {user?.name}
+          </ThemedText>
+        </View>
+      </LinearGradient>
+
+      <View style={styles.container}>
+        {/* Tarjeta de título */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <MaterialCommunityIcons name="account-cash" size={24} color="#333" />
+            <ThemedText style={styles.cardTitle}>Control de inventario</ThemedText>
+          </View>
+          <ThemedText style={styles.cardSubtitle}>
+            Productos en inventario
+          </ThemedText>
+        </View>
+
+        {/* Lista de productos */}
+        {products.length > 0 ? (
+          <FlatList
+            data={products}
+            renderItem={renderProductItem}
+            keyExtractor={item => item.id}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+          />
+        ) : (
+          <View style={styles.emptyState}>
+            <MaterialCommunityIcons name="account-off" size={50} color="#ccc" />
+            <ThemedText style={styles.emptyStateText}>
+              No tienes productos registrados
+            </ThemedText>
+          </View>
+        )}
+
+        <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => setShowAddForm(true)}
+            >
+            <MaterialCommunityIcons name="plus" size={24} color="white" />
+            <ThemedText style={styles.addButtonText}>Agregar Producto</ThemedText>
+        </TouchableOpacity>
+
+        {/* Modal para agregar nuevo producto */}
+        <Modal
+          visible={showAddForm}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setShowAddForm(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <ThemedText style={styles.modalTitle}>Agregar Nuevo Producto</ThemedText>
+
+              <TextInput
+                style={styles.input}
+                placeholder="Nombre del producto *"
+                value={newProduct.product_name}
+                onChangeText={(text) => setNewProduct({...newProduct, product_name: text})}
+                placeholderTextColor="#999"
+              />
+              
+              <TextInput
+                style={styles.input}
+                placeholder="Cantidad *"
+                value={newProduct.quantity}
+                onChangeText={(text) => setNewProduct({...newProduct, quantity: text})}
+                keyboardType="numeric"
+                placeholderTextColor="#999"
+              />
+
+              <TextInput
+                style={styles.input}
+                placeholder="Precio *"
+                value={newProduct.price}
+                onChangeText={(text) => setNewProduct({...newProduct, price: text})}
+                keyboardType="numeric"
+                placeholderTextColor="#999"
+              />
+              
+              <TextInput
+                style={styles.input}
+                placeholder="Código de barras (opcional)"
+                value={newProduct.barcode}
+                onChangeText={(text) => setNewProduct({...newProduct, barcode: text})}
+                keyboardType="phone-pad"
+                placeholderTextColor="#999"
+              />
+              
+              
+              <View style={styles.modalButtons}>
+                <TouchableOpacity 
+                  style={[styles.modalButton, styles.cancelButton]}
+                  onPress={() => setShowAddForm(false)}
+                  disabled={addingProduct}
+                >
+                  <ThemedText style={styles.cancelButtonText}>Cancelar</ThemedText>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={[styles.modalButton, styles.saveButton]}
+                  onPress={addNewProduct}
+                  disabled={addingProduct}
+                >
+                  {addingProduct ? (
+                    <ActivityIndicator color="white" />
+                  ) : (
+                    <ThemedText style={styles.saveButtonText}>Guardar</ThemedText>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      </View>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#f4f5f7",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    color: '#666',
+  },
+  header: {
+    paddingTop: 50,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+  },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "white",
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: "white",
+    opacity: 0.9,
+  },
+  container: {
+    flex: 1,
+    padding: 20,
+  },
+  card: {
+    backgroundColor: "white",
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginLeft: 10,
+    color: "#333",
+  },
+  cardSubtitle: {
+    fontSize: 14,
+    color: "#666",
+    marginLeft: 34,
+  },
+  listContent: {
+    paddingBottom: 80,
+  },
+  clientItem: {
+    backgroundColor: "white",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  clientInfo: {
+    flex: 1,
+  },
+  clientName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 4,
+  },
+  clientPhone: {
+    fontSize: 14,
+    color: "#666",
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 50,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 10,
+    textAlign: 'center',
+  },
+  addButton: {
+    position: "absolute",
+    bottom: 20,
+    right: 20,
+    left: 20,
+    backgroundColor: "#28a745",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  addButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginLeft: 10,
+  },
+  // Estilos para el modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    padding: 20,
+    width: '100%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+    color: '#333',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 15,
+    fontSize: 16,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 10,
+  },
+  modalButton: {
+    flex: 1,
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  cancelButton: {
+    backgroundColor: '#f1f1f1',
+  },
+  saveButton: {
+    backgroundColor: '#28a745',
+  },
+  cancelButtonText: {
+    color: '#333',
+    fontWeight: 'bold',
+  },
+  saveButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+  },
+});
