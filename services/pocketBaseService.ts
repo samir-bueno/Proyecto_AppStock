@@ -1,6 +1,6 @@
 import PocketBase from "pocketbase";
 
-export const POCKETBASE_URL = "http://192.168.0.13:8090";
+export const POCKETBASE_URL = "http://192.168.0.78:8090";
 export const pb = new PocketBase(POCKETBASE_URL);
 
 //Autenticación
@@ -52,6 +52,26 @@ export const createProduct = async (productData: any) => {
     return { success: true, data: record };
   } catch (error: any) {
     return { success: false, error: "No se pudo agregar el producto" };
+  }
+};
+
+// Actualizar un producto existente
+export const updateProduct = async (id: string, data: any) => {
+  try {
+    const updatedProduct = await pb.collection('products').update(id, data);
+    return { success: true, data: updatedProduct };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+};
+
+// Eliminar un producto
+export const deleteProduct = async (id: string) => {
+  try {
+    await pb.collection('products').delete(id);
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
   }
 };
 

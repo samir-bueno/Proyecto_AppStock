@@ -1,26 +1,22 @@
 import { ThemedText } from "@/components/ThemedText";
 import { useAuth } from "@/contexts/AuthProvider";
-import { createProduct, getProductsByOwner } from "@/services/pocketBaseService";
+import { createProduct, deleteProduct, getProductsByOwner, updateProduct } from "@/services/pocketBaseService";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    FlatList,
-    Modal,
-    SafeAreaView,
-    StatusBar,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Modal,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
-
-
-// Configuración de PocketBase
-const POCKETBASE_URL = "http://192.168.0.13:8090";
 
 // Interfaces para TypeScript
 interface NewProduct {
@@ -33,7 +29,7 @@ interface NewProduct {
 interface Product {
   id: string;
   product_name: string;
-  quantity?: string;
+  quantity: string;
   owner_id: string;
   price: string;
   barcode: string;
@@ -41,20 +37,26 @@ interface Product {
   updated?: string;
 }
 
-interface PocketBaseResponse {
-  items: Product[];
-  page: number;
-  perPage: number;
-  totalItems: number;
-  totalPages: number;
-}
+// Función para mapear los datos de PocketBase a nuestra interfaz Product
+const mapRecordToProduct = (record: any): Product => ({
+  id: record.id,
+  product_name: record.product_name || '',
+  quantity: record.quantity || '0',
+  owner_id: record.owner_id || '',
+  price: record.price || '0',
+  barcode: record.barcode || '',
+  created: record.created,
+  updated: record.updated
+});
 
 export default function InventarioScreen() {
   const { user } = useAuth();
   const router = useRouter();
-  const [products, setProducts] = useState<any[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [newProduct, setNewProduct] = useState<NewProduct>({
     product_name: "",
     quantity: "",
@@ -62,7 +64,7 @@ export default function InventarioScreen() {
     barcode: ""
   });
   const [addingProduct, setAddingProduct] = useState(false);
-  
+  const [updatingProduct, setUpdatingProduct] = useState(false);
 
   // Función para cargar productos desde PocketBase
   const loadProducts = async () => { 
@@ -70,7 +72,9 @@ export default function InventarioScreen() {
     setLoading(true);
     const result = await getProductsByOwner(user.id);
     if (result.success) {
-      setProducts(result.data || []);
+      // Mapear los datos de PocketBase a nuestra interfaz Product
+      const mappedProducts = result.data ? result.data.map(mapRecordToProduct) : [];
+      setProducts(mappedProducts);
     } else {
       Alert.alert("Error", result.error);
     }
@@ -81,47 +85,137 @@ export default function InventarioScreen() {
     loadProducts();
   }, [user]);
 
-  // Cargar productos al montar el componente
-  useEffect(() => {
-    loadProducts();
-  }, []);
-
   // Función para agregar nuevo producto
   const addNewProduct = async () => {
     if (!newProduct.product_name.trim()) {
+      Alert.alert("Error", "El nombre del producto es obligatorio");
       return;
     }
     setAddingProduct(true);
     const result = await createProduct({ ...newProduct, owner_id: user?.id });
     if (result.success) {
-
       await loadProducts(); // Recargamos la lista
       setShowAddForm(false);
       setNewProduct({ product_name: "", quantity: "", price: "", barcode: "" });
       Alert.alert("Éxito", "Producto agregado correctamente");
-
     } else {
       Alert.alert("Error", result.error);
     }
     setAddingProduct(false);
   };
 
+  // Función para actualizar producto
+  const updateExistingProduct = async () => {
+    if (!editingProduct) return;
+    
+    if (!editingProduct.product_name.trim()) {
+      Alert.alert("Error", "El nombre del producto es obligatorio");
+      return;
+    }
+    
+    setUpdatingProduct(true);
+    const result = await updateProduct(editingProduct.id, editingProduct);
+    if (result.success) {
+      await loadProducts(); // Recargamos la lista
+      setShowEditForm(false);
+      setEditingProduct(null);
+      Alert.alert("Éxito", "Producto actualizado correctamente");
+    } else {
+      Alert.alert("Error", result.error);
+    }
+    setUpdatingProduct(false);
+  };
+
+  // Función para eliminar producto
+  const deleteExistingProduct = async (productId: string) => {
+    Alert.alert(
+      "Confirmar eliminación",
+      "¿Estás seguro de que quieres eliminar este producto?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        { 
+          text: "Eliminar", 
+          style: "destructive",
+          onPress: async () => {
+            const result = await deleteProduct(productId);
+            if (result.success) {
+              await loadProducts(); // Recargamos la lista
+              Alert.alert("Éxito", "Producto eliminado correctamente");
+            } else {
+              Alert.alert("Error", result.error);
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  // Función para aumentar/disminuir cantidad
+  const updateQuantity = async (productId: string, change: number) => {
+    const product = products.find(p => p.id === productId);
+    if (!product) return;
+    
+    const currentQuantity = parseInt(product.quantity || "0");
+    const newQuantity = Math.max(0, currentQuantity + change);
+    
+    const result = await updateProduct(productId, { ...product, quantity: newQuantity.toString() });
+    if (result.success) {
+      await loadProducts(); // Recargamos la lista
+    } else {
+      Alert.alert("Error", result.error);
+    }
+  };
+
+  // Abrir modal de edición
+  const openEditModal = (product: Product) => {
+    setEditingProduct({...product});
+    setShowEditForm(true);
+  };
+
   const renderProductItem = ({ item }: { item: Product }) => (
-    <TouchableOpacity 
-      style={styles.clientItem}
-      onPress={() => {
-        // Aquí puedes navegar a los detalles del producto si lo necesitas
-        Alert.alert(item.product_name, `Cantidad: ${item.quantity}\nPrecio: ${item.price}\nCódigo de barras: ${item.barcode || "N/A"}`);
-      }}
-    >
-      <View style={styles.clientInfo}>
-        <ThemedText style={styles.clientName}>{item.product_name}</ThemedText>
-        <ThemedText style={styles.clientPhone}>
-          {item.barcode || "Sin código de barras"}
+    <View style={styles.productItem}>
+      <View style={styles.productInfo}>
+        <ThemedText style={styles.productName}>{item.product_name}</ThemedText>
+        <ThemedText style={styles.productPrice}>${item.price}</ThemedText>
+        <ThemedText style={styles.productBarcode}>
+          {item.barcode || "No hay código de barras"}
         </ThemedText>
       </View>
-      <MaterialCommunityIcons name="chevron-right" size={24} color="#999" />
-    </TouchableOpacity>
+      
+      <View style={styles.quantityControls}>
+        <TouchableOpacity 
+          style={styles.quantityButton}
+          onPress={() => updateQuantity(item.id, -1)}
+        >
+          <MaterialCommunityIcons name="minus" size={20} color="white" />
+        </TouchableOpacity>
+        
+        <ThemedText style={styles.quantityText}>{item.quantity || "0"}</ThemedText>
+        
+        <TouchableOpacity 
+          style={styles.quantityButton}
+          onPress={() => updateQuantity(item.id, 1)}
+        >
+          <MaterialCommunityIcons name="plus" size={20} color="white" />
+        </TouchableOpacity>
+      </View>
+      
+      <View style={styles.actionButtons}>
+        <TouchableOpacity 
+          style={styles.editButton}
+          onPress={() => openEditModal(item)}
+        >
+          <MaterialCommunityIcons name="pencil" size={20} color="white" />
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={styles.deleteButton}
+          onPress={() => deleteExistingProduct(item.id)}
+        >
+          <MaterialCommunityIcons name="delete" size={20} color="white" />
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 
   if (loading) {
@@ -176,7 +270,7 @@ export default function InventarioScreen() {
           />
         ) : (
           <View style={styles.emptyState}>
-            <MaterialCommunityIcons name="account-off" size={50} color="#ccc" />
+            <MaterialCommunityIcons name="package-variant" size={50} color="#ccc" />
             <ThemedText style={styles.emptyStateText}>
               No tienes productos registrados
             </ThemedText>
@@ -184,11 +278,11 @@ export default function InventarioScreen() {
         )}
 
         <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => setShowAddForm(true)}
-            >
-            <MaterialCommunityIcons name="plus" size={24} color="white" />
-            <ThemedText style={styles.addButtonText}>Agregar Producto</ThemedText>
+          style={styles.addButton}
+          onPress={() => setShowAddForm(true)}
+        >
+          <MaterialCommunityIcons name="plus" size={24} color="white" />
+          <ThemedText style={styles.addButtonText}>Agregar Producto</ThemedText>
         </TouchableOpacity>
 
         {/* Modal para agregar nuevo producto */}
@@ -212,7 +306,7 @@ export default function InventarioScreen() {
               
               <TextInput
                 style={styles.input}
-                placeholder="Cantidad *"
+                placeholder="Cantidad inicial *"
                 value={newProduct.quantity}
                 onChangeText={(text) => setNewProduct({...newProduct, quantity: text})}
                 keyboardType="numeric"
@@ -233,10 +327,8 @@ export default function InventarioScreen() {
                 placeholder="Código de barras (opcional)"
                 value={newProduct.barcode}
                 onChangeText={(text) => setNewProduct({...newProduct, barcode: text})}
-                keyboardType="phone-pad"
                 placeholderTextColor="#999"
               />
-              
               
               <View style={styles.modalButtons}>
                 <TouchableOpacity 
@@ -256,6 +348,76 @@ export default function InventarioScreen() {
                     <ActivityIndicator color="white" />
                   ) : (
                     <ThemedText style={styles.saveButtonText}>Guardar</ThemedText>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+
+        {/* Modal para editar producto */}
+        <Modal
+          visible={showEditForm}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setShowEditForm(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <ThemedText style={styles.modalTitle}>Editar Producto</ThemedText>
+
+              <TextInput
+                style={styles.input}
+                placeholder="Nombre del producto *"
+                value={editingProduct?.product_name || ""}
+                onChangeText={(text) => setEditingProduct(prev => prev ? {...prev, product_name: text} : null)}
+                placeholderTextColor="#999"
+              />
+              
+              <TextInput
+                style={styles.input}
+                placeholder="Cantidad *"
+                value={editingProduct?.quantity || ""}
+                onChangeText={(text) => setEditingProduct(prev => prev ? {...prev, quantity: text} : null)}
+                keyboardType="numeric"
+                placeholderTextColor="#999"
+              />
+
+              <TextInput
+                style={styles.input}
+                placeholder="Precio *"
+                value={editingProduct?.price || ""}
+                onChangeText={(text) => setEditingProduct(prev => prev ? {...prev, price: text} : null)}
+                keyboardType="numeric"
+                placeholderTextColor="#999"
+              />
+              
+              <TextInput
+                style={styles.input}
+                placeholder="Código de barras (opcional)"
+                value={editingProduct?.barcode || ""}
+                onChangeText={(text) => setEditingProduct(prev => prev ? {...prev, barcode: text} : null)}
+                placeholderTextColor="#999"
+              />
+              
+              <View style={styles.modalButtons}>
+                <TouchableOpacity 
+                  style={[styles.modalButton, styles.cancelButton]}
+                  onPress={() => setShowEditForm(false)}
+                  disabled={updatingProduct}
+                >
+                  <ThemedText style={styles.cancelButtonText}>Cancelar</ThemedText>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={[styles.modalButton, styles.saveButton]}
+                  onPress={updateExistingProduct}
+                  disabled={updatingProduct}
+                >
+                  {updatingProduct ? (
+                    <ActivityIndicator color="white" />
+                  ) : (
+                    <ThemedText style={styles.saveButtonText}>Actualizar</ThemedText>
                   )}
                 </TouchableOpacity>
               </View>
@@ -335,7 +497,7 @@ const styles = StyleSheet.create({
   listContent: {
     paddingBottom: 80,
   },
-  clientItem: {
+  productItem: {
     backgroundColor: "white",
     borderRadius: 12,
     padding: 16,
@@ -349,18 +511,64 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
-  clientInfo: {
+  productInfo: {
     flex: 1,
   },
-  clientName: {
+  productName: {
     fontSize: 16,
     fontWeight: "600",
     color: "#333",
     marginBottom: 4,
   },
-  clientPhone: {
+  productPrice: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#4a00e0",
+    marginBottom: 4,
+  },
+  productBarcode: {
     fontSize: 14,
     color: "#666",
+  },
+  quantityControls: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 10,
+  },
+  quantityButton: {
+    backgroundColor: "#4a00e0",
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  quantityText: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginHorizontal: 10,
+    minWidth: 30,
+    textAlign: "center",
+  },
+  actionButtons: {
+    flexDirection: "row",
+  },
+  editButton: {
+    backgroundColor: "#ffa500",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 8,
+  },
+  deleteButton: {
+    backgroundColor: "#dc3545",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
   },
   emptyState: {
     flex: 1,
