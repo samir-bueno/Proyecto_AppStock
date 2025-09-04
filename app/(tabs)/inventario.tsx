@@ -26,7 +26,7 @@ interface NewProduct {
   barcode: string;
 }
 
-interface Product {
+export interface Product {
   id: string;
   product_name: string;
   quantity: string;
@@ -38,7 +38,7 @@ interface Product {
 }
 
 // Función para mapear los datos de PocketBase a nuestra interfaz Product
-const mapRecordToProduct = (record: any): Product => ({
+export const mapRecordToProduct = (record: any): Product => ({
   id: record.id,
   product_name: record.product_name || '',
   quantity: record.quantity || '0',

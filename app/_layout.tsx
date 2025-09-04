@@ -22,7 +22,6 @@ function AppContent() {
       ) : (
         <Stack.Screen name="(Auth)" />
       )}
-      <Stack.Screen name="+not-found" />
     </Stack>
   );
 }

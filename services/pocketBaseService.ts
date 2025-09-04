@@ -1,6 +1,6 @@
 import PocketBase from "pocketbase";
 
-export const POCKETBASE_URL = "http://192.168.0.78:8090";
+export const POCKETBASE_URL = "http://192.168.0.13:8090";
 export const pb = new PocketBase(POCKETBASE_URL);
 
 //Autenticación
