@@ -15,7 +15,8 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  View
+  View,
+  Text
 } from "react-native";
 
 // Interfaces para TypeScript
@@ -142,7 +143,7 @@ export default function InventarioScreen() {
               await loadProducts(); // Recargamos la lista
               Alert.alert("Éxito", "Producto eliminado correctamente");
             } else {
-              Alert.alert("Error", result.error);
+              <Text>Error: {result.error}</Text>
             }
           }
         }
