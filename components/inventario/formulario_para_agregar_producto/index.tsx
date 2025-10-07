@@ -4,12 +4,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
-  ActivityIndicator,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from "react-native";
 import { z } from "zod";
 
@@ -18,22 +17,27 @@ const schema = z.object({
   nombre: z
     .string()
     .min(2, { message: "El campo 'nombre' debe contener al menos dos letras" }),
-  telefono: z
+  cantidad: z
     .string()
-    .optional()
-    .refine((val) => !val || val.length >= 8, {
-      message: "El campo 'telefono' debe contener al menos 8 digitos",
-    }),
+    .min(1, { message: "El campo 'cantidad' es obligatorio" }),
+  precio: z
+    .string()
+    .min(1, { message: "El campo 'precio' es obligatorio" }),
+  codigo_barras: z
+    .string()
+    .optional(),
 });
 
-const FormuloarioParaAgregarUnFiado = ({
+const FormularioParaAgregarUnProducto = ({
   alCerrarElFormulario,
   alGuardarLosDatosDelFormulario,
-  agregandoCliente = false,
+  agregandoProducto = false,
+  productoExistente,
 }: {
   alCerrarElFormulario: () => void;
   alGuardarLosDatosDelFormulario: (data: z.infer<typeof schema>) => void;
-  agregandoCliente: boolean;
+  agregandoProducto: boolean;
+  productoExistente?: { producto: string; cantidad: string; precio: string, codigo_barras?: string };
 }) => {
   // Initialize the form with React Hook Form and Zod schema resolver
   const {
@@ -42,6 +46,14 @@ const FormuloarioParaAgregarUnFiado = ({
     formState: { errors },
   } = useForm({
     resolver: zodResolver(schema),
+    defaultValues: productoExistente
+      ? {
+          nombre: productoExistente.producto || '',
+          cantidad: productoExistente.cantidad || '',
+          precio: productoExistente.precio || '',
+          codigo_barras: productoExistente.codigo_barras || '',
+        }
+      : {},
   });
 
   // Function to handle form submission
@@ -72,7 +84,7 @@ const FormuloarioParaAgregarUnFiado = ({
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}
-              placeholder="Nombre del cliente *"
+                placeholder="Nombre del producto *"
               ref={ref}
               placeholderTextColor="#999"
             />
@@ -82,14 +94,46 @@ const FormuloarioParaAgregarUnFiado = ({
         {/* Segundo campo */}
         <Controller
           control={control}
-          name="telefono"
+          name="cantidad"
           render={({ field: { onChange, onBlur, value, ref } }) => (
             <TextInput
               style={styles_para_formulario.inpu}
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}
-              placeholder="Telefono (opcional)"
+              placeholder="Cantidad *"
+              ref={ref}
+              placeholderTextColor="#999"
+            />
+          )}
+        />
+        {/* Tercer campo */}
+        <Controller
+          control={control}
+          name="precio"
+          render={({ field: { onChange, onBlur, value, ref } }) => (
+            <TextInput
+              style={styles_para_formulario.inpu}
+              onBlur={onBlur}
+              onChangeText={onChange}
+              value={value}
+              placeholder="Precio *"
+              ref={ref}
+              placeholderTextColor="#999"
+            />
+          )}
+        />
+        {/* Cuarto campo */}
+        <Controller
+          control={control}
+          name="codigo_barras"
+          render={({ field: { onChange, onBlur, value, ref } }) => (
+            <TextInput
+              style={styles_para_formulario.inpu}
+              onBlur={onBlur}
+              onChangeText={onChange}
+              value={value}
+              placeholder="Codigo de barras (opcional)"
               ref={ref}
               placeholderTextColor="#999"
             />
@@ -98,6 +142,14 @@ const FormuloarioParaAgregarUnFiado = ({
         {errors.nombre && (
           <Text style={styles_para_formulario.error}>
             El campo 'nombre' debe contener al menos dos letras
+          </Text>
+        ) || errors.cantidad && (
+          <Text style={styles_para_formulario.error}>
+            El campo 'cantidad' es obligatorio
+          </Text>
+        ) || errors.precio && (
+          <Text style={styles_para_formulario.error}>
+            El campo 'precio' es obligatorio
           </Text>
         )}
         
@@ -112,13 +164,9 @@ const FormuloarioParaAgregarUnFiado = ({
           <TouchableOpacity
             style={[styles.modalButton, styles.saveButton]}
             onPress={handleSubmit(onSubmit)}
-            disabled={agregandoCliente}
           >
-             {agregandoCliente ? (
-              <ActivityIndicator size="small" color="white" />
-            ) : (
+            
             <ThemedText style={styles.saveButtonText}>Guardar</ThemedText>
-          )}
           </TouchableOpacity>
         </View>
       </View>
@@ -169,10 +217,6 @@ const styles_para_formulario = StyleSheet.create({
     marginBottom: 15,
     fontSize: 16,
   },
-  disabledButton: {
-  backgroundColor: '#cccccc',
-  opacity: 0.6,
-  },
 });
 
-export default FormuloarioParaAgregarUnFiado;
+export default FormularioParaAgregarUnProducto;

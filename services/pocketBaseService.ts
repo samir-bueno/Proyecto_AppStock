@@ -1,8 +1,7 @@
 import PocketBase from "pocketbase";
-import axios from "axios";
 
 
-export const POCKETBASE_URL = "http://10.56.2.66:8090";
+export const POCKETBASE_URL = "http://192.168.0.13:8090";
 export const pb = new PocketBase(POCKETBASE_URL);
 
 //Autenticación

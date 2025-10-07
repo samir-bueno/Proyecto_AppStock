@@ -35,7 +35,6 @@ export default function FiadoScreen() {
   const [clients, setClients] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newClient, setNewClient] = useState({ name: "", phone: "" });
   const [addingClient, setAddingClient] = useState(false);
 
   // Función para cargar clientes desde PocketBase
@@ -56,32 +55,37 @@ export default function FiadoScreen() {
     loadClients();
   }, [user]);
 
-  // Función para agregar nuevo cliente
-  const addNewClient = async () => {
-    
+// Función para agregar nuevo cliente
+  const handleAddNewClient = (clientData: { nombre: string; telefono?: string }) => {
+  (async () => {
     if (!user) {
       Alert.alert("Error", "No hay usuario autenticado");
       return;
     }
 
-    if (!newClient.name.trim()) {
+    if (!clientData.nombre.trim()) {
       Alert.alert("Error", "El nombre es obligatorio");
       return;
     }
 
     setAddingClient(true);
-    const result = await createCustomer({ ...newClient, owner_id: user.id });
+    // Adaptamos los datos para que coincidan con lo que espera createCustomer
+    const result = await createCustomer({ 
+      name: clientData.nombre, 
+      phone: clientData.telefono, 
+      owner_id: user.id 
+    });
 
     if (result.success) {
       Alert.alert("Éxito", "Cliente agregado correctamente");
       await loadClients(); // Recargamos la lista para ver el nuevo cliente
       setShowAddForm(false);
-      setNewClient({ name: "", phone: "" });
     } else {
       Alert.alert("Error", result.error);
     }
     setAddingClient(false);
-  };
+  })();
+};
 
   const renderClientItem = ({ item }: { item: Client }) => (
     <TouchableOpacity
@@ -187,7 +191,11 @@ export default function FiadoScreen() {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
-              <FormuloarioParaAgregarUnFiado alCerrarElFormulario={() => setShowAddForm(false)} alGuardarLosDatosDelFormulario={() => addNewClient()} />
+              <FormuloarioParaAgregarUnFiado
+                alCerrarElFormulario={() => setShowAddForm(false)}
+                alGuardarLosDatosDelFormulario={handleAddNewClient}
+                agregandoCliente={addingClient}
+              />
             </View>
           </View>
         </Modal>

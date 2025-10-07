@@ -1,3 +1,4 @@
+import FormularioParaAgregarUnProducto from "@/components/inventario/formulario_para_agregar_producto";
 import { ThemedText } from "@/components/ThemedText";
 import { useAuth } from "@/contexts/AuthProvider";
 import { createProduct, deleteProduct, getProductsByOwner, updateProduct } from "@/services/pocketBaseService";
@@ -13,11 +14,11 @@ import {
   SafeAreaView,
   StatusBar,
   StyleSheet,
-  TextInput,
+  Text,
   TouchableOpacity,
-  View,
-  Text
+  View
 } from "react-native";
+
 
 // Interfaces para TypeScript
 interface NewProduct {
@@ -86,46 +87,67 @@ export default function InventarioScreen() {
     loadProducts();
   }, [user]);
 
+  
   // Función para agregar nuevo producto
-  const addNewProduct = async () => {
-    if (!newProduct.product_name.trim()) {
-      Alert.alert("Error", "El nombre del producto es obligatorio");
-      return;
-    }
-    setAddingProduct(true);
-    const result = await createProduct({ ...newProduct, owner_id: user?.id });
-    if (result.success) {
-      await loadProducts(); // Recargamos la lista
-      setShowAddForm(false);
-      setNewProduct({ product_name: "", quantity: "", price: "", barcode: "" });
-      Alert.alert("Éxito", "Producto agregado correctamente");
-    } else {
-      Alert.alert("Error", result.error);
-    }
-    setAddingProduct(false);
+  const handleAddNewProduct = (productData: { nombre: string; cantidad: string; precio: string; codigo_barras?: string }) => {
+    (async () => {
+      if (!user) {
+        Alert.alert("Error", "No hay usuario autenticado");
+        return;
+      }
+
+      setAddingProduct(true);
+      // Adaptamos los datos para que coincidan con lo que espera createProduct
+      const result = await createProduct({
+        product_name: productData.nombre,
+        quantity: productData.cantidad,
+        price: productData.precio,
+        barcode: productData.codigo_barras,
+        owner_id: user.id
+      });
+  
+      if (result.success) {
+        Alert.alert("Éxito", "Producto agregado correctamente");
+        await loadProducts(); // Recargamos la lista para ver el nuevo producto
+        setShowAddForm(false);
+      } else {
+        Alert.alert("Error", result.error);
+      }
+      setAddingProduct(false);
+    })();
   };
 
   // Función para actualizar producto
-  const updateExistingProduct = async () => {
-    if (!editingProduct) return;
-    
-    if (!editingProduct.product_name.trim()) {
-      Alert.alert("Error", "El nombre del producto es obligatorio");
+  const handleEditProduct = (productData: { nombre: string; cantidad: string; precio: string; codigo_barras?: string }) => {
+  if (!editingProduct) return;
+
+  (async () => {
+    if (!user) {
+      Alert.alert("Error", "No hay usuario autenticado");
       return;
     }
-    
+
     setUpdatingProduct(true);
-    const result = await updateProduct(editingProduct.id, editingProduct);
+    // Adaptamos los datos para que coincidan con lo que espera updateProduct
+    const result = await updateProduct(editingProduct.id, {
+      product_name: productData.nombre,
+      quantity: productData.cantidad,
+      price: productData.precio,
+      barcode: productData.codigo_barras,
+      owner_id: user.id
+    });
+
     if (result.success) {
-      await loadProducts(); // Recargamos la lista
+      Alert.alert("Éxito", "Producto actualizado correctamente");
+      await loadProducts(); // Recargamos la lista para ver el producto actualizado
       setShowEditForm(false);
       setEditingProduct(null);
-      Alert.alert("Éxito", "Producto actualizado correctamente");
     } else {
       Alert.alert("Error", result.error);
     }
     setUpdatingProduct(false);
-  };
+  })();
+};
 
   // Función para eliminar producto
   const deleteExistingProduct = async (productId: string) => {
@@ -295,65 +317,13 @@ export default function InventarioScreen() {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
-              <ThemedText style={styles.modalTitle}>Agregar Nuevo Producto</ThemedText>
-
-              <TextInput
-                style={styles.input}
-                placeholder="Nombre del producto *"
-                value={newProduct.product_name}
-                onChangeText={(text) => setNewProduct({...newProduct, product_name: text})}
-                placeholderTextColor="#999"
+              <FormularioParaAgregarUnProducto
+                alCerrarElFormulario={() => setShowAddForm(false)}
+                alGuardarLosDatosDelFormulario={handleAddNewProduct}
+                agregandoProducto={addingProduct}
               />
-              
-              <TextInput
-                style={styles.input}
-                placeholder="Cantidad inicial *"
-                value={newProduct.quantity}
-                onChangeText={(text) => setNewProduct({...newProduct, quantity: text})}
-                keyboardType="numeric"
-                placeholderTextColor="#999"
-              />
-
-              <TextInput
-                style={styles.input}
-                placeholder="Precio *"
-                value={newProduct.price}
-                onChangeText={(text) => setNewProduct({...newProduct, price: text})}
-                keyboardType="numeric"
-                placeholderTextColor="#999"
-              />
-              
-              <TextInput
-                style={styles.input}
-                placeholder="Código de barras (opcional)"
-                value={newProduct.barcode}
-                onChangeText={(text) => setNewProduct({...newProduct, barcode: text})}
-                placeholderTextColor="#999"
-              />
-              
-              <View style={styles.modalButtons}>
-                <TouchableOpacity 
-                  style={[styles.modalButton, styles.cancelButton]}
-                  onPress={() => setShowAddForm(false)}
-                  disabled={addingProduct}
-                >
-                  <ThemedText style={styles.cancelButtonText}>Cancelar</ThemedText>
-                </TouchableOpacity>
-                
-                <TouchableOpacity 
-                  style={[styles.modalButton, styles.saveButton]}
-                  onPress={addNewProduct}
-                  disabled={addingProduct}
-                >
-                  {addingProduct ? (
-                    <ActivityIndicator color="white" />
-                  ) : (
-                    <ThemedText style={styles.saveButtonText}>Guardar</ThemedText>
-                  )}
-                </TouchableOpacity>
               </View>
             </View>
-          </View>
         </Modal>
 
         {/* Modal para editar producto */}
@@ -365,63 +335,22 @@ export default function InventarioScreen() {
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
-              <ThemedText style={styles.modalTitle}>Editar Producto</ThemedText>
-
-              <TextInput
-                style={styles.input}
-                placeholder="Nombre del producto *"
-                value={editingProduct?.product_name || ""}
-                onChangeText={(text) => setEditingProduct(prev => prev ? {...prev, product_name: text} : null)}
-                placeholderTextColor="#999"
-              />
-              
-              <TextInput
-                style={styles.input}
-                placeholder="Cantidad *"
-                value={editingProduct?.quantity || ""}
-                onChangeText={(text) => setEditingProduct(prev => prev ? {...prev, quantity: text} : null)}
-                keyboardType="numeric"
-                placeholderTextColor="#999"
-              />
-
-              <TextInput
-                style={styles.input}
-                placeholder="Precio *"
-                value={editingProduct?.price || ""}
-                onChangeText={(text) => setEditingProduct(prev => prev ? {...prev, price: text} : null)}
-                keyboardType="numeric"
-                placeholderTextColor="#999"
-              />
-              
-              <TextInput
-                style={styles.input}
-                placeholder="Código de barras (opcional)"
-                value={editingProduct?.barcode || ""}
-                onChangeText={(text) => setEditingProduct(prev => prev ? {...prev, barcode: text} : null)}
-                placeholderTextColor="#999"
-              />
-              
-              <View style={styles.modalButtons}>
-                <TouchableOpacity 
-                  style={[styles.modalButton, styles.cancelButton]}
-                  onPress={() => setShowEditForm(false)}
-                  disabled={updatingProduct}
-                >
-                  <ThemedText style={styles.cancelButtonText}>Cancelar</ThemedText>
-                </TouchableOpacity>
-                
-                <TouchableOpacity 
-                  style={[styles.modalButton, styles.saveButton]}
-                  onPress={updateExistingProduct}
-                  disabled={updatingProduct}
-                >
-                  {updatingProduct ? (
-                    <ActivityIndicator color="white" />
-                  ) : (
-                    <ThemedText style={styles.saveButtonText}>Actualizar</ThemedText>
-                  )}
-                </TouchableOpacity>
-              </View>
+              <FormularioParaAgregarUnProducto
+        alCerrarElFormulario={() => {
+          setShowEditForm(false);
+          setEditingProduct(null);
+        }}
+        alGuardarLosDatosDelFormulario={handleEditProduct}
+        agregandoProducto={updatingProduct}
+        productoExistente={
+          editingProduct ? {
+            producto: editingProduct.product_name,
+            cantidad: editingProduct.quantity,
+            precio: editingProduct.price,
+            codigo_barras: editingProduct.barcode
+          } : undefined
+        }
+      />
             </View>
           </View>
         </Modal>
