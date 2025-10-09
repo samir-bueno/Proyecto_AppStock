@@ -1,7 +1,15 @@
-import FormularioParaAgregarUnProducto from "@/components/inventario/formulario_para_agregar_producto";
+import AgregarProducto from "@/components/inventario/agregar_producto";
+import FormularioParaAgregarUnProducto from "@/components/inventario/agregar_producto/formulario_para_agregar_producto";
+import ListaDeProductos from "@/components/inventario/lista_de_productos";
 import { ThemedText } from "@/components/ThemedText";
 import { useAuth } from "@/contexts/AuthProvider";
-import { createProduct, deleteProduct, getProductsByOwner, updateProduct } from "@/services/pocketBaseService";
+import {
+  createProduct,
+  deleteProduct,
+  getProductsByOwner,
+  Product,
+  updateProduct,
+} from "@/services/pocketbaseServices";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -9,7 +17,6 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  FlatList,
   Modal,
   SafeAreaView,
   StatusBar,
@@ -19,7 +26,6 @@ import {
   View
 } from "react-native";
 
-
 // Interfaces para TypeScript
 interface NewProduct {
   product_name: string;
@@ -28,27 +34,17 @@ interface NewProduct {
   barcode: string;
 }
 
-export interface Product {
-  id: string;
-  product_name: string;
-  quantity: string;
-  owner_id: string;
-  price: string;
-  barcode: string;
-  created?: string;
-  updated?: string;
-}
 
 // Función para mapear los datos de PocketBase a nuestra interfaz Product
 export const mapRecordToProduct = (record: any): Product => ({
   id: record.id,
-  product_name: record.product_name || '',
-  quantity: record.quantity || '0',
-  owner_id: record.owner_id || '',
-  price: record.price || '0',
-  barcode: record.barcode || '',
+  product_name: record.product_name || "",
+  quantity: record.quantity || "0",
+  owner_id: record.owner_id || "",
+  price: record.price || "0",
+  barcode: record.barcode || "",
   created: record.created,
-  updated: record.updated
+  updated: record.updated,
 });
 
 export default function InventarioScreen() {
@@ -63,19 +59,21 @@ export default function InventarioScreen() {
     product_name: "",
     quantity: "",
     price: "",
-    barcode: ""
+    barcode: "",
   });
   const [addingProduct, setAddingProduct] = useState(false);
   const [updatingProduct, setUpdatingProduct] = useState(false);
 
   // Función para cargar productos desde PocketBase
-  const loadProducts = async () => { 
+  const loadProducts = async () => {
     if (!user) return;
     setLoading(true);
     const result = await getProductsByOwner(user.id);
     if (result.success) {
       // Mapear los datos de PocketBase a nuestra interfaz Product
-      const mappedProducts = result.data ? result.data.map(mapRecordToProduct) : [];
+      const mappedProducts = result.data
+        ? result.data.map(mapRecordToProduct)
+        : [];
       setProducts(mappedProducts);
     } else {
       Alert.alert("Error", result.error);
@@ -87,9 +85,13 @@ export default function InventarioScreen() {
     loadProducts();
   }, [user]);
 
-  
   // Función para agregar nuevo producto
-  const handleAddNewProduct = (productData: { nombre: string; cantidad: string; precio: string; codigo_barras?: string }) => {
+  const handleAddNewProduct = (productData: {
+    nombre: string;
+    cantidad: string;
+    precio: string;
+    codigo_barras?: string;
+  }) => {
     (async () => {
       if (!user) {
         Alert.alert("Error", "No hay usuario autenticado");
@@ -103,9 +105,9 @@ export default function InventarioScreen() {
         quantity: productData.cantidad,
         price: productData.precio,
         barcode: productData.codigo_barras,
-        owner_id: user.id
+        owner_id: user.id,
       });
-  
+
       if (result.success) {
         Alert.alert("Éxito", "Producto agregado correctamente");
         await loadProducts(); // Recargamos la lista para ver el nuevo producto
@@ -118,36 +120,41 @@ export default function InventarioScreen() {
   };
 
   // Función para actualizar producto
-  const handleEditProduct = (productData: { nombre: string; cantidad: string; precio: string; codigo_barras?: string }) => {
-  if (!editingProduct) return;
+  const handleEditProduct = (productData: {
+    nombre: string;
+    cantidad: string;
+    precio: string;
+    codigo_barras?: string;
+  }) => {
+    if (!editingProduct) return;
 
-  (async () => {
-    if (!user) {
-      Alert.alert("Error", "No hay usuario autenticado");
-      return;
-    }
+    (async () => {
+      if (!user) {
+        Alert.alert("Error", "No hay usuario autenticado");
+        return;
+      }
 
-    setUpdatingProduct(true);
-    // Adaptamos los datos para que coincidan con lo que espera updateProduct
-    const result = await updateProduct(editingProduct.id, {
-      product_name: productData.nombre,
-      quantity: productData.cantidad,
-      price: productData.precio,
-      barcode: productData.codigo_barras,
-      owner_id: user.id
-    });
+      setUpdatingProduct(true);
+      // Adaptamos los datos para que coincidan con lo que espera updateProduct
+      const result = await updateProduct(editingProduct.id, {
+        product_name: productData.nombre,
+        quantity: productData.cantidad,
+        price: productData.precio,
+        barcode: productData.codigo_barras,
+        owner_id: user.id,
+      });
 
-    if (result.success) {
-      Alert.alert("Éxito", "Producto actualizado correctamente");
-      await loadProducts(); // Recargamos la lista para ver el producto actualizado
-      setShowEditForm(false);
-      setEditingProduct(null);
-    } else {
-      Alert.alert("Error", result.error);
-    }
-    setUpdatingProduct(false);
-  })();
-};
+      if (result.success) {
+        Alert.alert("Éxito", "Producto actualizado correctamente");
+        await loadProducts(); // Recargamos la lista para ver el producto actualizado
+        setShowEditForm(false);
+        setEditingProduct(null);
+      } else {
+        Alert.alert("Error", result.error);
+      }
+      setUpdatingProduct(false);
+    })();
+  };
 
   // Función para eliminar producto
   const deleteExistingProduct = async (productId: string) => {
@@ -156,8 +163,8 @@ export default function InventarioScreen() {
       "¿Estás seguro de que quieres eliminar este producto?",
       [
         { text: "Cancelar", style: "cancel" },
-        { 
-          text: "Eliminar", 
+        {
+          text: "Eliminar",
           style: "destructive",
           onPress: async () => {
             const result = await deleteProduct(productId);
@@ -165,23 +172,26 @@ export default function InventarioScreen() {
               await loadProducts(); // Recargamos la lista
               Alert.alert("Éxito", "Producto eliminado correctamente");
             } else {
-              <Text>Error: {result.error}</Text>
+              <Text>Error: {result.error}</Text>;
             }
-          }
-        }
+          },
+        },
       ]
     );
   };
 
   // Función para aumentar/disminuir cantidad
   const updateQuantity = async (productId: string, change: number) => {
-    const product = products.find(p => p.id === productId);
+    const product = products.find((p) => p.id === productId);
     if (!product) return;
-    
+
     const currentQuantity = parseInt(product.quantity || "0");
     const newQuantity = Math.max(0, currentQuantity + change);
-    
-    const result = await updateProduct(productId, { ...product, quantity: newQuantity.toString() });
+
+    const result = await updateProduct(productId, {
+      ...product,
+      quantity: newQuantity.toString(),
+    });
     if (result.success) {
       await loadProducts(); // Recargamos la lista
     } else {
@@ -191,7 +201,7 @@ export default function InventarioScreen() {
 
   // Abrir modal de edición
   const openEditModal = (product: Product) => {
-    setEditingProduct({...product});
+    setEditingProduct({ ...product });
     setShowEditForm(true);
   };
 
@@ -204,34 +214,36 @@ export default function InventarioScreen() {
           {item.barcode || "No hay código de barras"}
         </ThemedText>
       </View>
-      
+
       <View style={styles.quantityControls}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.quantityButton}
           onPress={() => updateQuantity(item.id, -1)}
         >
           <MaterialCommunityIcons name="minus" size={20} color="white" />
         </TouchableOpacity>
-        
-        <ThemedText style={styles.quantityText}>{item.quantity || "0"}</ThemedText>
-        
-        <TouchableOpacity 
+
+        <ThemedText style={styles.quantityText}>
+          {item.quantity || "0"}
+        </ThemedText>
+
+        <TouchableOpacity
           style={styles.quantityButton}
           onPress={() => updateQuantity(item.id, 1)}
         >
           <MaterialCommunityIcons name="plus" size={20} color="white" />
         </TouchableOpacity>
       </View>
-      
+
       <View style={styles.actionButtons}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.editButton}
           onPress={() => openEditModal(item)}
         >
           <MaterialCommunityIcons name="pencil" size={20} color="white" />
         </TouchableOpacity>
-        
-        <TouchableOpacity 
+
+        <TouchableOpacity
           style={styles.deleteButton}
           onPress={() => deleteExistingProduct(item.id)}
         >
@@ -246,7 +258,9 @@ export default function InventarioScreen() {
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#4a00e0" />
-          <ThemedText style={styles.loadingText}>Cargando productos...</ThemedText>
+          <ThemedText style={styles.loadingText}>
+            Cargando productos...
+          </ThemedText>
         </View>
       </SafeAreaView>
     );
@@ -255,7 +269,7 @@ export default function InventarioScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" />
-      
+
       <LinearGradient
         colors={["#4a00e0", "#8e2de2"]}
         start={{ x: 0, y: 0 }}
@@ -274,8 +288,14 @@ export default function InventarioScreen() {
         {/* Tarjeta de título */}
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <MaterialCommunityIcons name="account-cash" size={24} color="#333" />
-            <ThemedText style={styles.cardTitle}>Control de inventario</ThemedText>
+            <MaterialCommunityIcons
+              name="account-cash"
+              size={24}
+              color="#333"
+            />
+            <ThemedText style={styles.cardTitle}>
+              Control de inventario
+            </ThemedText>
           </View>
           <ThemedText style={styles.cardSubtitle}>
             Productos en inventario
@@ -283,30 +303,12 @@ export default function InventarioScreen() {
         </View>
 
         {/* Lista de productos */}
-        {products.length > 0 ? (
-          <FlatList
-            data={products}
-            renderItem={renderProductItem}
-            keyExtractor={item => item.id}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-          />
-        ) : (
-          <View style={styles.emptyState}>
-            <MaterialCommunityIcons name="package-variant" size={50} color="#ccc" />
-            <ThemedText style={styles.emptyStateText}>
-              No tienes productos registrados
-            </ThemedText>
-          </View>
-        )}
-
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => setShowAddForm(true)}
-        >
-          <MaterialCommunityIcons name="plus" size={24} color="white" />
-          <ThemedText style={styles.addButtonText}>Agregar Producto</ThemedText>
-        </TouchableOpacity>
+        
+        <ListaDeProductos 
+          products={products}
+          renderizarProductos={renderProductItem} 
+        />
+        <AgregarProducto AbrirFormulario={() => setShowAddForm(true)} />
 
         {/* Modal para agregar nuevo producto */}
         <Modal
@@ -322,8 +324,8 @@ export default function InventarioScreen() {
                 alGuardarLosDatosDelFormulario={handleAddNewProduct}
                 agregandoProducto={addingProduct}
               />
-              </View>
             </View>
+          </View>
         </Modal>
 
         {/* Modal para editar producto */}
@@ -336,21 +338,23 @@ export default function InventarioScreen() {
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <FormularioParaAgregarUnProducto
-        alCerrarElFormulario={() => {
-          setShowEditForm(false);
-          setEditingProduct(null);
-        }}
-        alGuardarLosDatosDelFormulario={handleEditProduct}
-        agregandoProducto={updatingProduct}
-        productoExistente={
-          editingProduct ? {
-            producto: editingProduct.product_name,
-            cantidad: editingProduct.quantity,
-            precio: editingProduct.price,
-            codigo_barras: editingProduct.barcode
-          } : undefined
-        }
-      />
+                alCerrarElFormulario={() => {
+                  setShowEditForm(false);
+                  setEditingProduct(null);
+                }}
+                alGuardarLosDatosDelFormulario={handleEditProduct}
+                agregandoProducto={updatingProduct}
+                productoExistente={
+                  editingProduct
+                    ? {
+                        producto: editingProduct.product_name,
+                        cantidad: editingProduct.quantity,
+                        precio: editingProduct.price,
+                        codigo_barras: editingProduct.barcode,
+                      }
+                    : undefined
+                }
+              />
             </View>
           </View>
         </Modal>
@@ -366,12 +370,12 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingText: {
     marginTop: 10,
-    color: '#666',
+    color: "#666",
   },
   header: {
     paddingTop: 50,
@@ -503,15 +507,15 @@ const styles = StyleSheet.create({
   },
   emptyState: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 50,
   },
   emptyStateText: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
     marginTop: 10,
-    textAlign: 'center',
+    textAlign: "center",
   },
   addButton: {
     position: "absolute",
@@ -539,57 +543,57 @@ const styles = StyleSheet.create({
   // Estilos para el modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 12,
     padding: 20,
-    width: '100%',
+    width: "100%",
     maxWidth: 400,
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 20,
-    textAlign: 'center',
-    color: '#333',
+    textAlign: "center",
+    color: "#333",
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 8,
     padding: 12,
     marginBottom: 15,
     fontSize: 16,
   },
   modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: 10,
   },
   modalButton: {
     flex: 1,
     padding: 15,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
     marginHorizontal: 5,
   },
   cancelButton: {
-    backgroundColor: '#f1f1f1',
+    backgroundColor: "#f1f1f1",
   },
   saveButton: {
-    backgroundColor: '#28a745',
+    backgroundColor: "#28a745",
   },
   cancelButtonText: {
-    color: '#333',
-    fontWeight: 'bold',
+    color: "#333",
+    fontWeight: "bold",
   },
   saveButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
+    color: "white",
+    fontWeight: "bold",
   },
 });

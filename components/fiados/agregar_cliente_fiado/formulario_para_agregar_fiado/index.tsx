@@ -169,10 +169,6 @@ const styles_para_formulario = StyleSheet.create({
     marginBottom: 15,
     fontSize: 16,
   },
-  disabledButton: {
-  backgroundColor: '#cccccc',
-  opacity: 0.6,
-  },
 });
 
 export default FormuloarioParaAgregarUnFiado;

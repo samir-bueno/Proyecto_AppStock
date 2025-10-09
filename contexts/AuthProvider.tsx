@@ -1,10 +1,17 @@
-import { RecordModel } from 'pocketbase';
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
-import { loginUser, pb, registerUser } from '../services/pocketBaseService';
+import { loginUser, logoutUser, registerUser } from '../services/pocketbaseServices';
+
+// Tipo mínimo para el usuario (ajusta según lo que retorna tu API)
+interface UserModel {
+  id: string;
+  name?: string;
+  email?: string;
+  [key: string]: any;
+}
 
 // Definir la interfaz para el valor del contexto
 interface AuthContextType {
-  user: RecordModel | null;
+  user: UserModel | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
@@ -26,44 +33,47 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<RecordModel | null>(null);
+  const [user, setUser] = useState<UserModel | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    // Inicializar desde localStorage (token + user) si existe
     try {
-      if (pb.authStore.isValid) {
-        setUser(pb.authStore.model);
+      const token = localStorage.getItem('pb_auth_token');
+      const rawUser = localStorage.getItem('pb_auth_user');
+      if (token) {
         setIsAuthenticated(true);
+        if (rawUser) {
+          try {
+            setUser(JSON.parse(rawUser));
+          } catch (e) {
+            setUser(null);
+          }
+        }
       }
     } catch (error) {
-      console.error("Error al inicializar AuthProvider:", error);
-      pb.authStore.clear();
+      console.error('Error al inicializar AuthProvider desde localStorage:', error);
     } finally {
       setIsLoading(false);
     }
 
-    // Escuchar cambios en el authStore para mantener el estado sincronizado
-    const removeListener = pb.authStore.onChange(() => {
-        setIsAuthenticated(pb.authStore.isValid);
-        setUser(pb.authStore.model);
-    });
-
-    // Limpiar el listener cuando el componente se desmonte
-    return () => {
-        removeListener();
-    };
+    // No hay listeners externos porque ya no usamos pb.authStore
+    return () => {};
   }, []);
 
   // Función de Login
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     const result = await loginUser(email, password);
-    if (result.success && result.user) {
-      setUser(result.user);
+    if (result.success && result.data) {
+      setUser(result.data as UserModel);
       setIsAuthenticated(true);
     } else {
-      pb.authStore.clear();
+      // Aseguramos limpiar almacenamiento local
+      try {
+        logoutUser();
+      } catch (e) {}
       setUser(null);
       setIsAuthenticated(false);
     }
@@ -86,7 +96,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Función de Logout
   const logout = () => {
-    pb.authStore.clear();
+    try {
+      logoutUser();
+    } catch (e) {
+      // ignore
+    }
     setUser(null);
     setIsAuthenticated(false);
   };

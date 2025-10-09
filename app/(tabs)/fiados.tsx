@@ -1,34 +1,28 @@
+import AgregarClienteFiado from "@/components/fiados/agregar_cliente_fiado";
+import ListaDeFiados from "@/components/fiados/lista_de_fiados";
 import { ThemedText } from "@/components/ThemedText";
 import { useAuth } from "@/contexts/AuthProvider";
 import {
   createCustomer,
+  Customer,
   getCustomersByOwner,
-} from "@/services/pocketBaseService";
+} from "@/services/pocketbaseServices";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  FlatList,
   Modal,
   SafeAreaView,
   StatusBar,
   StyleSheet,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
-import FormuloarioParaAgregarUnFiado from "../../components/formulario_para_agregar_fiado";
+import FormuloarioParaAgregarUnFiado from "../../components/fiados/agregar_cliente_fiado/formulario_para_agregar_fiado";
 
 // Interfaces para TypeScript
-interface Client {
-  id: string;
-  name: string;
-  phone?: string;
-  owner_id: string;
-  created?: string;
-  updated?: string;
-}
 
 export default function FiadoScreen() {
   const { user } = useAuth();
@@ -39,7 +33,11 @@ export default function FiadoScreen() {
 
   // Función para cargar clientes desde PocketBase
   const loadClients = async () => {
-    if (!user) return;
+    if (!user) {
+      // si no hay usuario, no intentamos cargar y mostramos pantalla vacía
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     const result = await getCustomersByOwner(user.id);
     if (result.success) {
@@ -87,7 +85,7 @@ export default function FiadoScreen() {
   })();
 };
 
-  const renderClientItem = ({ item }: { item: Client }) => (
+  const renderClientItem = ({ item }: { item: Customer }) => (
     <TouchableOpacity
       style={styles.clientItem}
       onPress={() => {
@@ -152,35 +150,14 @@ export default function FiadoScreen() {
             Clientes con crédito activo
           </ThemedText>
         </View>
-
+        
         {/* Lista de clientes */}
-        {clients.length > 0 ? (
-          <FlatList
-            data={clients}
-            renderItem={renderClientItem}
-            keyExtractor={(item) => item.id}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-          />
-        ) : (
-          <View style={styles.emptyState}>
-            <MaterialCommunityIcons name="account-off" size={50} color="#ccc" />
-            <ThemedText style={styles.emptyStateText}>
-              No tienes clientes registrados
-            </ThemedText>
-          </View>
-        )}
-
-        {/* Botón para agregar cliente */}
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => setShowAddForm(true)}
-        >
-          <MaterialCommunityIcons name="plus" size={24} color="white" />
-          <ThemedText style={styles.addButtonText}>
-            Agregar Cliente Fiado
-          </ThemedText>
-        </TouchableOpacity>
+        <ListaDeFiados 
+          clients={clients} 
+          renderizarClientes={renderClientItem} 
+        />
+      
+        <AgregarClienteFiado AbrirFormulario={() => setShowAddForm(true)} />
 
         {/* Modal para agregar nuevo cliente */}
         <Modal
@@ -199,6 +176,7 @@ export default function FiadoScreen() {
             </View>
           </View>
         </Modal>
+
       </View>
     </SafeAreaView>
   );

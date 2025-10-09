@@ -1,6 +1,6 @@
 import { ThemedText } from "@/components/ThemedText";
 import { useAuth } from "@/contexts/AuthProvider";
-import { getProductsByOwner } from "@/services/pocketBaseService";
+import { getProductsByOwner, Product } from "@/services/pocketbaseServices";
 import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from "expo-linear-gradient";
@@ -17,7 +17,7 @@ import {
   View,
 } from "react-native";
 import { FlatList } from "react-native-gesture-handler";
-import { Product, mapRecordToProduct } from "./inventario";
+import { mapRecordToProduct } from "./inventario";
 
 export default function HomeScreen() {
   const { user, logout } = useAuth();

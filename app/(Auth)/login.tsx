@@ -1,6 +1,6 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { loginUser } from "@/services/pocketBaseService";
+import { loginUser } from "@/services/pocketbaseServices";
 import { Image } from "expo-image";
 import { Link, useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -23,7 +23,7 @@ export default function LoginForm() {
     if (success) {
       router.replace("/(tabs)/ventas"); // Redirige a la pantalla principal
     } else {
-      const errorMessage = error.includes("Failed to fetch")
+      const errorMessage = error?.includes("Failed to fetch")
         ? "Error de conexión"
         : "Credenciales incorrectas";
       Alert.alert("Error", errorMessage);
