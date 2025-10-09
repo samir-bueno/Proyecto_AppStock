@@ -1,6 +1,6 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
 import { loginUser, logoutUser, registerUser } from '../services/pocketbaseServices';
-
 // Tipo mínimo para el usuario (ajusta según lo que retorna tu API)
 interface UserModel {
   id: string;
@@ -38,25 +38,30 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // Inicializar desde localStorage (token + user) si existe
-    try {
-      const token = localStorage.getItem('pb_auth_token');
-      const rawUser = localStorage.getItem('pb_auth_user');
-      if (token) {
-        setIsAuthenticated(true);
-        if (rawUser) {
-          try {
-            setUser(JSON.parse(rawUser));
-          } catch (e) {
-            setUser(null);
+    // Inicializar desde AsyncStorage (token + user) si existe
+    const initializeAuth = async () => {
+      try {
+        const token = await AsyncStorage.getItem('pb_auth_token');
+        const rawUser = await AsyncStorage.getItem('pb_auth_user');
+        
+        if (token) {
+          setIsAuthenticated(true);
+          if (rawUser) {
+            try {
+              setUser(JSON.parse(rawUser));
+            } catch (e) {
+              setUser(null);
+            }
           }
         }
+      } catch (error) {
+        console.error('Error al inicializar AuthProvider desde AsyncStorage:', error);
+      } finally {
+        setIsLoading(false);
       }
-    } catch (error) {
-      console.error('Error al inicializar AuthProvider desde localStorage:', error);
-    } finally {
-      setIsLoading(false);
-    }
+    };
+
+    initializeAuth();
 
     // No hay listeners externos porque ya no usamos pb.authStore
     return () => {};
@@ -66,6 +71,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     const result = await loginUser(email, password);
+    console.log("Login result in AuthProvider:", result);
     if (result.success && result.data) {
       setUser(result.data as UserModel);
       setIsAuthenticated(true);

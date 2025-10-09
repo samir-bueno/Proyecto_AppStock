@@ -1,4 +1,3 @@
-import { styles } from "@/app/(tabs)/fiados";
 import { ThemedText } from "@/components/ThemedText";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
@@ -44,11 +43,8 @@ const FormuloarioParaAgregarUnFiado = ({
     resolver: zodResolver(schema),
   });
 
-  // Function to handle form submission
   const onSubmit = (data: z.infer<typeof schema>) => {
-    // Llamamos al callback del padre pasando los datos del formulario
     alGuardarLosDatosDelFormulario(data);
-    console.log("Formulario enviado:", data);
   };
 
   const onClose = () => {
@@ -57,7 +53,7 @@ const FormuloarioParaAgregarUnFiado = ({
 
   return (
     <View>
-      <ThemedText style={styles_para_formulario.modalTitle}>
+      <ThemedText style={styles.modalTitle}>
         Agregar Nuevo Cliente
       </ThemedText>
 
@@ -68,7 +64,7 @@ const FormuloarioParaAgregarUnFiado = ({
           name="nombre"
           render={({ field: { onChange, onBlur, value, ref } }) => (
             <TextInput
-              style={styles_para_formulario.inpu}
+              style={styles.inpu}
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}
@@ -85,7 +81,7 @@ const FormuloarioParaAgregarUnFiado = ({
           name="telefono"
           render={({ field: { onChange, onBlur, value, ref } }) => (
             <TextInput
-              style={styles_para_formulario.inpu}
+              style={styles.inpu}
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}
@@ -96,7 +92,7 @@ const FormuloarioParaAgregarUnFiado = ({
           )}
         />
         {errors.nombre && (
-          <Text style={styles_para_formulario.error}>
+          <Text style={styles.error}>
             El campo 'nombre' debe contener al menos dos letras
           </Text>
         )}
@@ -126,7 +122,7 @@ const FormuloarioParaAgregarUnFiado = ({
   );
 };
 
-const styles_para_formulario = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     padding: 20,
   },
@@ -168,6 +164,32 @@ const styles_para_formulario = StyleSheet.create({
     padding: 12,
     marginBottom: 15,
     fontSize: 16,
+  },
+  modalButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
+  modalButton: {
+    flex: 1,
+    padding: 15,
+    borderRadius: 8,
+    alignItems: "center",
+    marginHorizontal: 5,
+  },
+  cancelButton: {
+    backgroundColor: "#f1f1f1",
+  },
+  saveButton: {
+    backgroundColor: "#28a745",
+  },
+  cancelButtonText: {
+    color: "#333",
+    fontWeight: "bold",
+  },
+  saveButtonText: {
+    color: "white",
+    fontWeight: "bold",
   },
 });
 

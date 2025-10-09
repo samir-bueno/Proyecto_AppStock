@@ -1,6 +1,6 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { loginUser } from "@/services/pocketbaseServices";
+import { useAuth } from '@/contexts/AuthProvider';
 import { Image } from "expo-image";
 import { Link, useRouter } from "expo-router";
 import React, { useState } from "react";
@@ -10,6 +10,7 @@ export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [contraseña, setContraseña] = useState("");
   const [loading, setLoading] = useState(false);
+  const { login } = useAuth();
 
   const handleLogin = async () => {
     if (!email || !contraseña) {
@@ -18,14 +19,15 @@ export default function LoginForm() {
     }
 
     setLoading(true);
-    const { success, error } = await loginUser(email, contraseña);
+    const { success, error } = await login(email, contraseña);
+    console.log("Login response:", { success, error });
 
-    if (success) {
+    if (success === true) {
       router.replace("/(tabs)/ventas"); // Redirige a la pantalla principal
     } else {
       const errorMessage = error?.includes("Failed to fetch")
         ? "Error de conexión"
-        : "Credenciales incorrectas";
+        : error || "Credenciales incorrectas";
       Alert.alert("Error", errorMessage);
     }
     setLoading(false);
@@ -102,13 +104,13 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   image: {
-    borderRadius: "100%",
+    borderRadius: 100,
     width: 60,
     height: 60,
     opacity: 0.8,
   },
   imageContainer: {
     alignItems: "center",
-    borderRadius: "100%",
+    borderRadius: 100,
   },
 });

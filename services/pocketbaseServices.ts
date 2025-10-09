@@ -1,4 +1,5 @@
 // api.ts
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axiosInstance from './axiosInstance';
 
 // Interfaces
@@ -77,15 +78,15 @@ export const loginUser = async (email: string, password: string): Promise<ApiRes
 
     const { token, record } = response.data;
     
-    // Guardar el token en localStorage
-    localStorage.setItem('pb_auth_token', token);
-    // Guardar también el usuario (registro) para leerlo desde AuthProvider si se necesita
-    try {
-      localStorage.setItem('pb_auth_user', JSON.stringify(record));
-    } catch (e) {
-      // si falla stringify, no es crítico
-    }
+    // 🔥 AGREGAR AWAIT - Esto es crucial
+    await AsyncStorage.setItem('pb_auth_token', token);
     
+    // También agregar await aquí
+    try {
+      await AsyncStorage.setItem('pb_auth_user', JSON.stringify(record));
+    } catch (e) {
+    }
+
     return { success: true, data: record };
   } catch (error: any) {
     console.error("Error en loginUser:", error);
@@ -97,12 +98,12 @@ export const loginUser = async (email: string, password: string): Promise<ApiRes
 };
 
 export const isAuthenticated = (): boolean => {
-  return !!localStorage.getItem('pb_auth_token');
+  return !!AsyncStorage.getItem('pb_auth_token');
 };
 
 export const logoutUser = (): void => {
-  localStorage.removeItem('pb_auth_token');
-  localStorage.removeItem('pb_auth_user');
+  AsyncStorage.removeItem('pb_auth_token');
+  AsyncStorage.removeItem('pb_auth_user');
 };
 
 // Funciones para productos

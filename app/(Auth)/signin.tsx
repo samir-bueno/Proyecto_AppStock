@@ -1,6 +1,6 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { registerUser } from "@/services/pocketbaseServices";
+import { useAuth } from '@/contexts/AuthProvider';
 import { Link, useRouter } from "expo-router";
 import React, { useState } from "react";
 import { Alert, Button, StyleSheet, TextInput, View } from "react-native";
@@ -12,6 +12,7 @@ export default function SigninForm() {
   const [contraseña, setContraseña] = useState("");
   const [confirmacion, setConfirmacion] = useState("");
   const [loading, setLoading] = useState(false);
+  const { register } = useAuth();
 
   const handleCrearCuenta = async () => {
     if (!nombre || !email || !contraseña || !confirmacion) {
@@ -24,7 +25,7 @@ export default function SigninForm() {
     }
 
     setLoading(true);
-    const { success, error } = await registerUser({
+    const { success, error } = await register({
       name: nombre,
       email,
       password: contraseña,
