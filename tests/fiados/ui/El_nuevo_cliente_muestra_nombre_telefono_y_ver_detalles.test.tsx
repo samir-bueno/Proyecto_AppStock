@@ -20,7 +20,7 @@ describe('FiadosScreen: Registrar nuevo cliente', () => {
     jest.clearAllMocks();
   });
 
-  test('El cliente recién agregado debe mostrarse con su nombre y teléfono', async () => {
+  test('El cliente recién agregado debe mostrarse con su nombre, teléfono y junto a la opcion Ver detalles', async () => {
     // --- Configuración de mocks ---
     mockedUseAuth.mockReturnValue({
       user: { id: 'user123', name: 'Test User' },
@@ -74,6 +74,7 @@ describe('FiadosScreen: Registrar nuevo cliente', () => {
     expect(screen.getByText('Juan Perez')).toBeTruthy(); 
     expect(screen.getByText('Sin teléfono')).toBeTruthy(); 
     expect(screen.getByText('$0')).toBeTruthy(); 
+    expect(screen.getByText('Ver Detalles')).toBeTruthy();
 
   });
 });
