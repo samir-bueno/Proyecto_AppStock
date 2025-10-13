@@ -1,6 +1,6 @@
 // axiosInstance.ts
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import axios from 'axios';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import axios from "axios";
 
 export const POCKETBASE_URL = "http://10.56.2.33:8090";
 
@@ -12,12 +12,12 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(async (config) => {
   try {
     // Obtener el token de AsyncStorage
-    const token = await AsyncStorage.getItem('pb_auth_token');
+    const token = await AsyncStorage.getItem("pb_auth_token");
     if (token) {
       config.headers.Authorization = token;
     }
   } catch (error) {
-    console.error('Error leyendo el token de AsyncStorage:', error);
+    console.error("Error leyendo el token de AsyncStorage:", error);
   }
   return config;
 });

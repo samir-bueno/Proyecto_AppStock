@@ -2,12 +2,13 @@ import { ThemedText } from "@/components/ThemedText";
 import { useAuth } from "@/contexts/AuthProvider";
 import { getProductsByOwner, Product } from "@/services/pocketbaseServices";
 import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  FlatList,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -16,7 +17,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { FlatList } from "react-native-gesture-handler";
+import "react-native-gesture-handler";
 import { mapRecordToProduct } from "./inventario";
 
 export default function HomeScreen() {
@@ -33,7 +34,9 @@ export default function HomeScreen() {
     setLoading(true);
     const result = await getProductsByOwner(user.id);
     if (result.success) {
-      const mappedProducts = result.data ? result.data.map(mapRecordToProduct) : [];
+      const mappedProducts = result.data
+        ? result.data.map(mapRecordToProduct)
+        : [];
       setProducts(mappedProducts);
       setFilteredProducts(mappedProducts);
     } else {
@@ -85,7 +88,7 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </LinearGradient>
 
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView style={styles.container}>
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <MaterialCommunityIcons name="scan-helper" size={24} color="#333" />
@@ -120,16 +123,19 @@ export default function HomeScreen() {
           />
           {isSearchFocused && !loading && (
             <FlatList
+              nestedScrollEnabled={true}
               data={filteredProducts}
               keyExtractor={(item) => item.id}
               renderItem={({ item }) => (
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.productItem}
                   onPress={() => {
                     setIsSearchFocused(false);
                   }}
                 >
-                  <ThemedText style={styles.productName}>{item.product_name}</ThemedText>
+                  <ThemedText style={styles.productName}>
+                    {item.product_name}
+                  </ThemedText>
                   <ThemedText style={styles.productDetails}>
                     Precio: ${item.price} | Cantidad: {item.quantity}
                   </ThemedText>
@@ -138,12 +144,16 @@ export default function HomeScreen() {
               style={styles.resultsList}
               ListEmptyComponent={
                 <ThemedText style={styles.noResults}>
-                  {busqueda ? "No se encontraron productos" : "No hay productos en tu inventario"}
+                  {busqueda
+                    ? "No se encontraron productos"
+                    : "No hay productos en tu inventario"}
                 </ThemedText>
               }
             />
           )}
-          {loading && isSearchFocused && <ActivityIndicator size="small" color="#0000ff" />}
+          {loading && isSearchFocused && (
+            <ActivityIndicator size="small" color="#0000ff" />
+          )}
         </View>
 
         <View style={styles.card}>
