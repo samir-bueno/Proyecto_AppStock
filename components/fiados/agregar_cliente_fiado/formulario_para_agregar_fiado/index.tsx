@@ -23,9 +23,13 @@ const schema = z.object({
     .refine((val) => !val || val.length >= 8, {
       message: "El campo 'telefono' debe contener al menos 8 digitos",
     }),
+  deuda: z
+    .string()
+    .optional()
+    .transform((val) => (val ? val : "0")),
 });
 
-const FormuloarioParaAgregarUnFiado = ({
+const FormularioParaAgregarUnFiado = ({
   alCerrarElFormulario,
   alGuardarLosDatosDelFormulario,
   agregandoCliente = false,
@@ -34,7 +38,7 @@ const FormuloarioParaAgregarUnFiado = ({
   alCerrarElFormulario: () => void;
   alGuardarLosDatosDelFormulario: (data: z.infer<typeof schema>) => void;
   agregandoCliente: boolean;
-  errorDuplicado?: boolean;
+  errorDuplicado: boolean;
 }) => {
   // Initialize the form with React Hook Form and Zod schema resolver
   const {
@@ -97,6 +101,24 @@ const FormuloarioParaAgregarUnFiado = ({
             />
           )}
         />
+
+        {/* Segundo campo */}
+        <Controller
+          control={control}
+          name="deuda"
+          render={({ field: { onChange, onBlur, value, ref } }) => (
+            <TextInput
+              style={styles.inpu}
+              onBlur={onBlur}
+              onChangeText={onChange}
+              value={value}
+              placeholder="Ingrese el monto"
+              ref={ref}
+              placeholderTextColor="#999"
+            />
+          )}
+        />
+
         {errors.nombre && (
           <Text style={styles.error}>
             El campo 'nombre' debe contener al menos dos letras
@@ -199,4 +221,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FormuloarioParaAgregarUnFiado;
+export default FormularioParaAgregarUnFiado;

@@ -14,7 +14,9 @@
   "jest": {
     "preset": "jest-expo",
     "transformIgnorePatterns": [],
-    "setupFiles": ["<rootDir>/jest.setup.js"]
+    "setupFiles": [
+      "<rootDir>/jest.setup.js"
+    ]
   },
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
@@ -47,6 +49,7 @@
     "react-dom": "19.0.0",
     "react-hook-form": "^7.63.0",
     "react-native": "0.79.5",
+    "react-native-collapsible": "^1.6.2",
     "react-native-gesture-handler": "~2.24.0",
     "react-native-reanimated": "~3.17.4",
     "react-native-safe-area-context": "5.4.0",

@@ -12,6 +12,7 @@ export interface User {
 export interface ClientData {
   name: string;
   phone?: string;
+  deuda: string | "0";
   owner_id: string;
 }
 
@@ -30,6 +31,7 @@ export interface Customer {
   id: string;
   name: string;
   phone?: string;
+  deuda: string;
   owner_id: string;
   created?: string;
   updated?: string;

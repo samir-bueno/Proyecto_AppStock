@@ -13,6 +13,7 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Button,
   Modal,
   SafeAreaView,
   StatusBar,
@@ -20,8 +21,10 @@ import {
   TouchableOpacity,
   View
 } from "react-native";
+import Collapsible from 'react-native-collapsible';
 import FormuloarioParaAgregarUnFiado from "../../components/fiados/agregar_cliente_fiado/formulario_para_agregar_fiado";
 import { validateDuplicateClient } from "../../components/fiados/validacion_de_cliente";
+// Interfaces para TypeScript
 
 export default function FiadoScreen() {
   const { user } = useAuth();
@@ -29,8 +32,8 @@ export default function FiadoScreen() {
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [addingClient, setAddingClient] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const [errorDuplicado, setErrorDuplicado] = useState(false);
-
   // Función para cargar clientes desde PocketBase
   const loadClients = async () => {
     if (!user) {
@@ -54,8 +57,8 @@ export default function FiadoScreen() {
   }, [user]);
 
 // Función para agregar nuevo cliente
-  const handleAddNewClient = (clientData: { nombre: string; telefono?: string }) => {
-  (async () => {
+  const handleAddNewClient = async (clientData: { nombre: string; telefono?: string; deuda: string }) => {
+    {
     if (!user) {
       Alert.alert("Error", "No hay usuario autenticado");
       return;
@@ -65,8 +68,7 @@ export default function FiadoScreen() {
       Alert.alert("Error", "El nombre es obligatorio");
       return;
     }
-
-    // NUEVA VALIDACIÓN: Verificar duplicados
+        // NUEVA VALIDACIÓN: Verificar duplicados
     if (validateDuplicateClient(clients, clientData.nombre)) {
       setErrorDuplicado(true); 
       return; 
@@ -79,6 +81,7 @@ export default function FiadoScreen() {
     const result = await createCustomer({ 
       name: clientData.nombre, 
       phone: clientData.telefono, 
+      deuda: clientData.deuda, 
       owner_id: user.id 
     });
 
@@ -90,25 +93,51 @@ export default function FiadoScreen() {
       Alert.alert("Error", result.error);
     }
     setAddingClient(false);
-  })();
+  };
 };
 
+  const toggleDetails = () => {
+    setIsCollapsed(!isCollapsed);
+  };
+
   const renderClientItem = ({ item }: { item: Customer }) => (
-    <TouchableOpacity
-      style={styles.clientItem}
-      onPress={() => {
-        // Aquí puedes navegar a los detalles del cliente si lo necesitas
-        Alert.alert(item.name, `Teléfono: ${item.phone || "No proporcionado"}`);
-      }}
-    >
-      <View style={styles.clientInfo}>
-        <ThemedText style={styles.clientName}>{item.name}</ThemedText>
-        <ThemedText style={styles.clientPhone}>
-          {item.phone || "Sin teléfono"}
+    <>
+      <TouchableOpacity
+        style={styles.clientItem}
+        onPress={() => {
+          Alert.alert(item.name, `Teléfono: ${item.phone || "No proporcionado"}`);
+        }}
+      >
+        <View style={styles.clientInfo}>
+          <ThemedText style={styles.clientName}>{item.name}</ThemedText>
+          <ThemedText style={styles.clientPhone}>
+            {item.phone || "Sin teléfono"}
+          </ThemedText>
+        </View>
+
+        <ThemedText style={styles.clientDeuda}>
+          {`$${item.deuda}`} 
         </ThemedText>
-      </View>
-      <MaterialCommunityIcons name="chevron-right" size={24} color="#999" />
-    </TouchableOpacity>
+
+        {/* ⚠️ El botón debe cambiar el estado de ESTE elemento específico */}
+        <Button
+          title={isCollapsed ? "Ver Detalles" : "Ocultar Detalles"}
+          onPress={() => {
+            // React Native Button onPress doesn't provide an event, so avoid stopPropagation here.
+            toggleDetails();
+          }}
+          color="#841584"
+        />
+      </TouchableOpacity>
+    
+      {/* ⚠️ El Collapsible va FUERA del TouchableOpacity, en su propio contenedor */}
+      <Collapsible collapsed={isCollapsed} duration={300}>
+        <View style={styles.details}>
+          <ThemedText>Detalles con animación fluida.</ThemedText>
+          <ThemedText>Este contenido se despliega suavemente.</ThemedText>
+        </View>
+      </Collapsible>
+    </>
   );
 
   if (loading) {
@@ -124,6 +153,7 @@ export default function FiadoScreen() {
     );
   }
 
+  
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" />
@@ -186,7 +216,7 @@ export default function FiadoScreen() {
                 }}
                 alGuardarLosDatosDelFormulario={handleAddNewClient}
                 agregandoCliente={addingClient}
-                errorDuplicado={errorDuplicado} 
+                errorDuplicado={errorDuplicado}
               />
             </View>
           </View>
@@ -278,6 +308,13 @@ export const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
+  },
+  clientDeuda: {
+    fontSize: 24, // Tamaño grande para el monto
+    fontWeight: 'normal',
+    color: 'green',
+    marginLeft: 10, 
+    marginRight: 10,
   },
   clientInfo: {
     flex: 1,
@@ -382,5 +419,12 @@ export const styles = StyleSheet.create({
   saveButtonText: {
     color: "white",
     fontWeight: "bold",
+  },
+
+  details: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
   },
 });
