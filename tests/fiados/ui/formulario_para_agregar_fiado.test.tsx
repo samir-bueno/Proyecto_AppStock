@@ -8,7 +8,14 @@ import {
 
 describe("Como cajero, deseo registrar un nuevo cliente fiado con su nombre y telefono para mantener control de su deuda", () => {
   test("Si el nombre esta vacio, al presionar agregar, debe mostrarse un nombre de error", async () => {
-    const { getByText } = render(<FormularioParaAgregarFiado alCerrarElFormulario={() => {}} alGuardarLosDatosDelFormulario={() => {}} agregandoCliente={false} />);
+    const { getByText } = render(
+      <FormularioParaAgregarFiado
+        alCerrarElFormulario={() => {}}
+        alGuardarLosDatosDelFormulario={() => {}}
+        agregandoCliente={false}
+        errorDuplicado={false}
+      />
+    );
 
     fireEvent.press(getByText("Guardar"));
     await waitFor(() =>

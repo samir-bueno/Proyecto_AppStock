@@ -13,6 +13,7 @@ test("Al cancelar el formulario, se debe cerrar sin guardar datos", () => {
       alCerrarElFormulario={() => { formularioCerrado = true; }} 
       alGuardarLosDatosDelFormulario={() => { datosGuardados = true; }} 
       agregandoCliente={false}
+      errorDuplicado={false}
     />
   );
 
