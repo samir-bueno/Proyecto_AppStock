@@ -21,8 +21,7 @@ import {
   View
 } from "react-native";
 import FormuloarioParaAgregarUnFiado from "../../components/fiados/agregar_cliente_fiado/formulario_para_agregar_fiado";
-
-// Interfaces para TypeScript
+import { validateDuplicateClient } from "../../components/fiados/validacion_de_cliente";
 
 export default function FiadoScreen() {
   const { user } = useAuth();
@@ -30,6 +29,7 @@ export default function FiadoScreen() {
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [addingClient, setAddingClient] = useState(false);
+  const [errorDuplicado, setErrorDuplicado] = useState(false);
 
   // Función para cargar clientes desde PocketBase
   const loadClients = async () => {
@@ -65,6 +65,14 @@ export default function FiadoScreen() {
       Alert.alert("Error", "El nombre es obligatorio");
       return;
     }
+
+    // NUEVA VALIDACIÓN: Verificar duplicados
+    if (validateDuplicateClient(clients, clientData.nombre)) {
+      setErrorDuplicado(true); 
+      return; 
+    }
+
+    setErrorDuplicado(false);
 
     setAddingClient(true);
     // Adaptamos los datos para que coincidan con lo que espera createCustomer
@@ -164,14 +172,21 @@ export default function FiadoScreen() {
           visible={showAddForm}
           animationType="slide"
           transparent={true}
-          onRequestClose={() => setShowAddForm(false)}
+          onRequestClose={() => {
+            setShowAddForm(false);
+            setErrorDuplicado(false);
+          }}
         >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <FormuloarioParaAgregarUnFiado
-                alCerrarElFormulario={() => setShowAddForm(false)}
+                alCerrarElFormulario={() => {
+                  setShowAddForm(false);
+                  setErrorDuplicado(false);
+                }}
                 alGuardarLosDatosDelFormulario={handleAddNewClient}
                 agregandoCliente={addingClient}
+                errorDuplicado={errorDuplicado} 
               />
             </View>
           </View>

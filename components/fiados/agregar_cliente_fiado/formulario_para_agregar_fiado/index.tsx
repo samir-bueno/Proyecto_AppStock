@@ -29,10 +29,12 @@ const FormuloarioParaAgregarUnFiado = ({
   alCerrarElFormulario,
   alGuardarLosDatosDelFormulario,
   agregandoCliente = false,
+  errorDuplicado = false, 
 }: {
   alCerrarElFormulario: () => void;
   alGuardarLosDatosDelFormulario: (data: z.infer<typeof schema>) => void;
   agregandoCliente: boolean;
+  errorDuplicado?: boolean;
 }) => {
   // Initialize the form with React Hook Form and Zod schema resolver
   const {
@@ -74,8 +76,12 @@ const FormuloarioParaAgregarUnFiado = ({
             />
           )}
         />
+        {errorDuplicado && (
+          <Text style={styles.error}>
+            Ya existe un cliente registrado con este nombre
+          </Text>
+        )}
 
-        {/* Segundo campo */}
         <Controller
           control={control}
           name="telefono"
@@ -110,7 +116,7 @@ const FormuloarioParaAgregarUnFiado = ({
             onPress={handleSubmit(onSubmit)}
             disabled={agregandoCliente}
           >
-             {agregandoCliente ? (
+            {agregandoCliente ? (
               <ActivityIndicator size="small" color="white" />
             ) : (
             <ThemedText style={styles.saveButtonText}>Guardar</ThemedText>
