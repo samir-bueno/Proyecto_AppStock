@@ -21,9 +21,8 @@ import {
   SafeAreaView,
   StatusBar,
   StyleSheet,
-  Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 
 // Interfaces para TypeScript
@@ -33,7 +32,6 @@ interface NewProduct {
   price: string;
   barcode: string;
 }
-
 
 // Función para mapear los datos de PocketBase a nuestra interfaz Product
 export const mapRecordToProduct = (record: any): Product => ({
@@ -63,6 +61,9 @@ export default function InventarioScreen() {
   });
   const [addingProduct, setAddingProduct] = useState(false);
   const [updatingProduct, setUpdatingProduct] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [deletingProduct, setDeletingProduct] = useState(false);
 
   // Función para cargar productos desde PocketBase
   const loadProducts = async () => {
@@ -156,28 +157,35 @@ export default function InventarioScreen() {
     })();
   };
 
+  // Función para abrir modal de confirmación de eliminación
+  const openDeleteConfirmation = (product: Product) => {
+    setProductToDelete(product);
+    setShowDeleteModal(true);
+  };
+
   // Función para eliminar producto
-  const deleteExistingProduct = async (productId: string) => {
-    Alert.alert(
-      "Confirmar eliminación",
-      "¿Estás seguro de que quieres eliminar este producto?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Eliminar",
-          style: "destructive",
-          onPress: async () => {
-            const result = await deleteProduct(productId);
-            if (result.success) {
-              await loadProducts(); // Recargamos la lista
-              Alert.alert("Éxito", "Producto eliminado correctamente");
-            } else {
-              <Text>Error: {result.error}</Text>;
-            }
-          },
-        },
-      ]
-    );
+  const confirmDeleteProduct = async () => {
+    if (!productToDelete) return;
+
+    setDeletingProduct(true);
+    const result = await deleteProduct(productToDelete.id);
+
+    if (result.success) {
+      await loadProducts(); // Recargamos la lista
+      Alert.alert("Éxito", "Producto eliminado correctamente");
+    } else {
+      Alert.alert("Error", result.error || "Error al eliminar el producto");
+    }
+
+    setDeletingProduct(false);
+    setShowDeleteModal(false);
+    setProductToDelete(null);
+  };
+
+  // Función para cancelar eliminación
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setProductToDelete(null);
   };
 
   // Función para aumentar/disminuir cantidad
@@ -205,53 +213,74 @@ export default function InventarioScreen() {
     setShowEditForm(true);
   };
 
-  const renderProductItem = ({ item }: { item: Product }) => (
-    <View style={styles.productItem}>
-      <View style={styles.productInfo}>
-        <ThemedText style={styles.productName}>{item.product_name}</ThemedText>
-        <ThemedText style={styles.productPrice}>${item.price}</ThemedText>
-        <ThemedText style={styles.productBarcode}>
-          {item.barcode || "No hay código de barras"}
-        </ThemedText>
+  const renderProductItem = ({ item }: { item: Product }) => {
+    const isAgotado = parseInt(item.quantity || "0") === 0;
+
+    return (
+      <View style={styles.productItem}>
+        {/* Etiqueta AGOTADO encima del producto */}
+        {isAgotado && (
+          <View style={styles.agotadoBadge}>
+            <ThemedText style={styles.agotadoBadgeText}>AGOTADO</ThemedText>
+          </View>
+        )}
+
+        <View style={styles.productInfo}>
+          <ThemedText style={styles.productName}>
+            {item.product_name}
+          </ThemedText>
+          <ThemedText style={styles.productPrice}>${item.price}</ThemedText>
+          <ThemedText style={styles.productBarcode}>
+            {item.barcode || "No hay código de barras"}
+          </ThemedText>
+        </View>
+
+        <View style={styles.quantityControls}>
+          <TouchableOpacity
+            style={[
+              styles.quantityButton,
+              isAgotado && styles.quantityButtonDisabled,
+            ]}
+            onPress={() => updateQuantity(item.id, -1)}
+            disabled={isAgotado}
+          >
+            <MaterialCommunityIcons
+              name="minus"
+              size={20}
+              color={isAgotado ? "#ccc" : "white"}
+            />
+          </TouchableOpacity>
+
+          <ThemedText style={styles.quantityText}>
+            {item.quantity || "0"}
+          </ThemedText>
+
+          <TouchableOpacity
+            style={styles.quantityButton}
+            onPress={() => updateQuantity(item.id, 1)}
+          >
+            <MaterialCommunityIcons name="plus" size={20} color="white" />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.actionButtons}>
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={() => openEditModal(item)}
+          >
+            <MaterialCommunityIcons name="pencil" size={20} color="white" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={() => openDeleteConfirmation(item)}
+          >
+            <MaterialCommunityIcons name="delete" size={20} color="white" />
+          </TouchableOpacity>
+        </View>
       </View>
-
-      <View style={styles.quantityControls}>
-        <TouchableOpacity
-          style={styles.quantityButton}
-          onPress={() => updateQuantity(item.id, -1)}
-        >
-          <MaterialCommunityIcons name="minus" size={20} color="white" />
-        </TouchableOpacity>
-
-        <ThemedText style={styles.quantityText}>
-          {item.quantity || "0"}
-        </ThemedText>
-
-        <TouchableOpacity
-          style={styles.quantityButton}
-          onPress={() => updateQuantity(item.id, 1)}
-        >
-          <MaterialCommunityIcons name="plus" size={20} color="white" />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.actionButtons}>
-        <TouchableOpacity
-          style={styles.editButton}
-          onPress={() => openEditModal(item)}
-        >
-          <MaterialCommunityIcons name="pencil" size={20} color="white" />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.deleteButton}
-          onPress={() => deleteExistingProduct(item.id)}
-        >
-          <MaterialCommunityIcons name="delete" size={20} color="white" />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+    );
+  };
 
   if (loading) {
     return (
@@ -303,10 +332,10 @@ export default function InventarioScreen() {
         </View>
 
         {/* Lista de productos */}
-        
-        <ListaDeProductos 
+
+        <ListaDeProductos
           products={products}
-          renderizarProductos={renderProductItem} 
+          renderizarProductos={renderProductItem}
         />
         <AgregarProducto AbrirFormulario={() => setShowAddForm(true)} />
 
@@ -355,6 +384,62 @@ export default function InventarioScreen() {
                     : undefined
                 }
               />
+            </View>
+          </View>
+        </Modal>
+
+        {/* Modal de confirmación para eliminar producto */}
+        <Modal
+          visible={showDeleteModal}
+          animationType="fade"
+          transparent={true}
+          onRequestClose={cancelDelete}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.confirmationModalContent}>
+              <MaterialCommunityIcons
+                name="alert-circle-outline"
+                size={50}
+                color="#dc3545"
+                style={styles.confirmationIcon}
+              />
+              <ThemedText style={styles.confirmationTitle}>
+                ¿Eliminar producto?
+              </ThemedText>
+              <ThemedText style={styles.confirmationMessage}>
+                Estás a punto de eliminar el producto
+                {productToDelete && ` "${productToDelete.product_name}"`}. Esta
+                acción no se puede deshacer.
+              </ThemedText>
+
+              <View style={styles.confirmationButtons}>
+                <TouchableOpacity
+                  style={[styles.confirmationButton, styles.cancelButton]}
+                  onPress={cancelDelete}
+                  disabled={deletingProduct}
+                >
+                  <ThemedText style={styles.cancelButtonText}>
+                    Cancelar
+                  </ThemedText>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    styles.confirmationButton,
+                    styles.deleteConfirmButton,
+                  ]}
+                  onPress={confirmDeleteProduct}
+                  disabled={deletingProduct}
+                >
+                  {deletingProduct ? (
+                    <ActivityIndicator size="small" color="white" />
+                  ) : (
+                    <ThemedText style={styles.deleteButtonText}>
+                      Eliminar
+                    </ThemedText>
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </Modal>
@@ -444,6 +529,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
+    position: "relative", // Para posicionar la etiqueta AGOTADO
   },
   productInfo: {
     flex: 1,
@@ -595,5 +681,71 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: "white",
     fontWeight: "bold",
+  },
+
+  agotadoBadge: {
+    position: "absolute",
+    top: -5,
+    right: -5,
+    backgroundColor: "#dc3545",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+    zIndex: 1,
+  },
+  agotadoBadgeText: {
+    color: "white",
+    fontSize: 10,
+    fontWeight: "bold",
+  },
+  quantityButtonDisabled: {
+    backgroundColor: "#ccc",
+  },
+  // Nuevos estilos para el modal de confirmación de eliminación
+  confirmationModalContent: {
+    backgroundColor: "white",
+    borderRadius: 12,
+    padding: 24,
+    width: "100%",
+    maxWidth: 400,
+    alignItems: "center",
+  },
+  confirmationIcon: {
+    marginBottom: 16,
+  },
+  confirmationTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 12,
+    textAlign: "center",
+    color: "#333",
+  },
+  confirmationMessage: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+    marginBottom: 24,
+    lineHeight: 22,
+  },
+  confirmationButtons: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    gap: 12,
+  },
+  confirmationButton: {
+    flex: 1,
+    padding: 15,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  deleteConfirmButton: {
+    backgroundColor: "#dc3545",
+  },
+  deleteButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 16,
   },
 });
