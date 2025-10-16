@@ -2,7 +2,6 @@ import AgregarClienteFiado from "@/components/fiados/agregar_cliente_fiado";
 import ListaDeFiados from "@/components/fiados/lista_de_fiados";
 import Tarjeta_fiado from "@/components/fiados/lista_de_fiados/tarjeta_fiado";
 import { ThemedText } from "@/components/ThemedText";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
 import {
   ActivityIndicator,
@@ -14,7 +13,8 @@ import {
 } from "react-native";
 import FormuloarioParaAgregarUnFiado from "../../components/fiados/agregar_cliente_fiado/formulario_para_agregar_fiado";
 // Interfaces para TypeScript
-import Header from "@/components/fiados/header";
+import { CuentasDeFiado } from "@/components/fiados/cuentasDeFiado";
+import Header from "@/components/global/header";
 import { useFiados } from "@/hooks/useFiados";
 
 export default function FiadoScreen() {
@@ -50,20 +50,7 @@ export default function FiadoScreen() {
       <Header />
 
       <View style={styles.container}>
-        {/* Tarjeta de título */}
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <MaterialCommunityIcons
-              name="account-cash"
-              size={24}
-              color="#333"
-            />
-            <ThemedText style={styles.cardTitle}>Cuentas de Fiado</ThemedText>
-          </View>
-          <ThemedText style={styles.cardSubtitle}>
-            Clientes con crédito activo
-          </ThemedText>
-        </View>
+        <CuentasDeFiado />
 
         {/* Lista de clientes */}
         <ListaDeFiados

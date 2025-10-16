@@ -4,11 +4,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import React from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 import { z } from "zod";
 
@@ -60,7 +60,6 @@ const FormularioParaAgregarUnProducto = ({
   const onSubmit = (data: z.infer<typeof schema>) => {
     // Llamamos al callback del padre pasando los datos del formulario
     alGuardarLosDatosDelFormulario(data);
-    console.log("Formulario enviado:", data);
   };
 
   const onClose = () => {

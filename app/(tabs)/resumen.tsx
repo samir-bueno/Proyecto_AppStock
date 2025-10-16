@@ -1,8 +1,9 @@
-import { Text, View } from "react-native"
+import Header from "@/components/global/header"
+import { SafeAreaView } from "react-native"
 export default function Resumen(){
     return(
-        <View>
-            <Text>Aca estara el resumen</Text>
-        </View>
+        <SafeAreaView>
+            <Header/>
+        </SafeAreaView>
     )
 }

@@ -1,6 +1,8 @@
+import Header from "@/components/global/header";
 import AgregarProducto from "@/components/inventario/agregar_producto";
 import FormularioParaAgregarUnProducto from "@/components/inventario/agregar_producto/formulario_para_agregar_producto";
 import ListaDeProductos from "@/components/inventario/lista_de_productos";
+import TarjetaTituloInventario from "@/components/inventario/tarjetaTituloInventario";
 import { ThemedText } from "@/components/ThemedText";
 import { useAuth } from "@/contexts/AuthProvider";
 import {
@@ -11,8 +13,6 @@ import {
   updateProduct,
 } from "@/services/pocketbaseServices";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -47,18 +47,11 @@ export const mapRecordToProduct = (record: any): Product => ({
 
 export default function InventarioScreen() {
   const { user } = useAuth();
-  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [newProduct, setNewProduct] = useState<NewProduct>({
-    product_name: "",
-    quantity: "",
-    price: "",
-    barcode: "",
-  });
   const [addingProduct, setAddingProduct] = useState(false);
   const [updatingProduct, setUpdatingProduct] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -299,37 +292,10 @@ export default function InventarioScreen() {
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="light-content" />
 
-      <LinearGradient
-        colors={["#4a00e0", "#8e2de2"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.header}
-      >
-        <View>
-          <ThemedText style={styles.headerTitle}>AppStock</ThemedText>
-          <ThemedText style={styles.headerSubtitle}>
-            Bienvenido, {user?.name}
-          </ThemedText>
-        </View>
-      </LinearGradient>
+      <Header />
 
       <View style={styles.container}>
-        {/* Tarjeta de título */}
-        <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <MaterialCommunityIcons
-              name="account-cash"
-              size={24}
-              color="#333"
-            />
-            <ThemedText style={styles.cardTitle}>
-              Control de inventario
-            </ThemedText>
-          </View>
-          <ThemedText style={styles.cardSubtitle}>
-            Productos en inventario
-          </ThemedText>
-        </View>
+        <TarjetaTituloInventario />
 
         {/* Lista de productos */}
 

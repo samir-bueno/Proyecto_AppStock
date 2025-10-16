@@ -1,13 +1,16 @@
+import { useAuth } from "@/contexts/AuthProvider";
 import { useFiados } from "@/hooks/useFiados";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { SafeAreaView, StatusBar, StyleSheet, View } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { ThemedText } from "../ThemedText";
+
 const Header = () => {
   const { user } = useFiados();
+  const { logout } = useAuth();
+  
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" />
-
+    <>
       {/* Encabezado */}
       <LinearGradient
         colors={["#4a00e0", "#8e2de2"]}
@@ -16,35 +19,43 @@ const Header = () => {
         style={styles.header}
       >
         <View>
-          <ThemedText style={styles.headerTitle}>Fiado</ThemedText>
+          <ThemedText style={styles.headerTitle}>AppStock</ThemedText>
           <ThemedText style={styles.headerSubtitle}>
             Bienvenido, {user?.name}
           </ThemedText>
         </View>
+        <TouchableOpacity onPress={logout}>
+          <MaterialCommunityIcons name="logout" size={28} color="white" />
+        </TouchableOpacity>
       </LinearGradient>
-    </SafeAreaView>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: "#4a00e0",
+    flex: 1,
+    backgroundColor: "#f4f5f7",
   },
   header: {
-    padding: 20,
-    paddingTop: 40,
+    paddingTop: 50,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
   },
   headerTitle: {
-    color: "#fff",
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
+    color: "white",
   },
   headerSubtitle: {
-    color: "#fff",
     fontSize: 16,
-    marginTop: 4,
+    color: "white",
+    opacity: 0.9,
   },
 });
 export default Header;

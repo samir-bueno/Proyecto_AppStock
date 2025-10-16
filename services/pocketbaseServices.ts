@@ -27,6 +27,10 @@ export interface Product {
   updated?: string;
 }
 
+export interface VentaProduct extends Product {
+  quantityInSale: number;
+}
+
 export interface Customer {
   id: string;
   name: string;
