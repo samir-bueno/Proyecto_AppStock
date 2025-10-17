@@ -1,13 +1,11 @@
 import { useAuth } from "@/contexts/AuthProvider";
-import { useFiados } from "@/hooks/useFiados";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 import { ThemedText } from "../ThemedText";
 
 const Header = () => {
-  const { user } = useFiados();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   
   return (
     <>
