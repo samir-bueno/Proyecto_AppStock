@@ -1,40 +1,22 @@
-// tests/prueba.test.tsx
+import BusquedaProductos from "@/components/ventas/busqueda";
+import { fireEvent, render, screen } from "@testing-library/react-native";
 
-import HomeScreen from "@/app/(tabs)/ventas";
-import { render, screen } from "@testing-library/react-native";
-import React from "react";
-
-import * as AuthProvider from "@/contexts/AuthProvider";
-import * as ApiService from "@/services/pocketbaseServices";
-
-// --- Servicios a mockear ---
-jest.mock("@/contexts/AuthProvider");
-jest.mock("@/services/pocketbaseServices");
-
-const mockedUseAuth = AuthProvider.useAuth as jest.Mock;
-const mockedGetProductsByOwner = ApiService.getProductsByOwner as jest.Mock;
-
-describe("<HomeScreen />: Buscar producto", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  test("Al buscar un producto por nombre, solo se muestran productos que tienen al menos 1 unidad en stock.", async () => {
-    // --- Configuración de mocks ---
-    mockedUseAuth.mockReturnValue({
-      user: { id: "user123", name: "Test User" },
-      isAuthenticated: true,
-      isLoading: false,
-    });
-    mockedGetProductsByOwner.mockResolvedValue({
-      success: true,
-      data: [], // La lista empieza vacia (no hay productos)
-    });
-
-
-    render(<HomeScreen />);
-
-    screen.getByPlaceholderText("Buscar por nombre...").focus();
-
-  }, 10000); // Aumentamos el timeout a 10 segundos
+test("Al buscar un producto por nombre, solo se muestran productos que tienen al menos 1 unidad en stock.", async () => {
+  render(
+    <BusquedaProductos
+      agregarProducto={() => {}}
+      valorBusqueda=""
+      setValorBusqueda={() => {}}
+      elBuscadorSeMuestra={true}
+      setElBuscadorSeMuestra={() => {}}
+      filtrarProductos={[
+        { id: "1", owner_id: "pepe123", product_name: "Producto 1", price: "10", quantity: "10", barcode: "123456789" },
+        { id: "2", owner_id: "pepe123", product_name: "Producto 2", price: "10", quantity: "0", barcode: "123456789" },
+      ]}
+      cargando={false}
+    />
+  );
+  const input = screen.getByPlaceholderText("Buscar por nombre...");
+  fireEvent(input, "focus");
+  await screen.findByText("Producto 1");
 });

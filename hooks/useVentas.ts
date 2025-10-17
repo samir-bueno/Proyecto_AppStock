@@ -20,7 +20,7 @@ export const useVentas = () => {
         if (productoExistente) {
           // Si el producto ya está en la venta, incrementa su cantidad
           return prevVenta.map((p) =>
-            p.id === producto.id
+            p.id === producto.id && p.quantityInSale < Number(p.quantity)
               ? { ...p, quantityInSale: p.quantityInSale + 1 }
               : p
           );

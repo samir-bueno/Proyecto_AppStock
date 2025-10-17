@@ -68,9 +68,15 @@ const FormularioParaAgregarUnProducto = ({
 
   return (
     <View>
+      {!productoExistente ? (
       <ThemedText style={styles_para_formulario.modalTitle}>
         Agregar Nuevo Cliente
       </ThemedText>
+    ) : (
+      <ThemedText style={styles_para_formulario.modalTitle}>
+        Editar Producto
+      </ThemedText>
+    )}
 
       <View>
         {/* Primer campo */}

@@ -2,7 +2,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
-export const POCKETBASE_URL = "http://10.56.2.54:8090";
+export const POCKETBASE_URL = "http://10.56.13.23:8090";
 
 const axiosInstance = axios.create({
   baseURL: POCKETBASE_URL,
