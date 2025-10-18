@@ -70,7 +70,7 @@ const FormularioParaAgregarUnProducto = ({
     <View>
       {!productoExistente ? (
       <ThemedText style={styles_para_formulario.modalTitle}>
-        Agregar Nuevo Cliente
+        Agregar Nuevo Producto
       </ThemedText>
     ) : (
       <ThemedText style={styles_para_formulario.modalTitle}>

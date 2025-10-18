@@ -260,6 +260,7 @@ export default function InventarioScreen() {
           <TouchableOpacity
             style={styles.editButton}
             onPress={() => openEditModal(item)}
+            testID="edit-button"
           >
             <MaterialCommunityIcons name="pencil" size={20} color="white" />
           </TouchableOpacity>
@@ -267,6 +268,7 @@ export default function InventarioScreen() {
           <TouchableOpacity
             style={styles.deleteButton}
             onPress={() => openDeleteConfirmation(item)}
+            testID="delete-button"
           >
             <MaterialCommunityIcons name="delete" size={20} color="white" />
           </TouchableOpacity>
