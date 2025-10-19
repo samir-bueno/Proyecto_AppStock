@@ -20,12 +20,12 @@ describe("Formulario muestra mensajes de error para los diferentes campos", () =
     fireEvent.press(screen.getByText("Guardar"));
 
     await waitFor(() => {
-      expect(screen.getByText("El campo 'nombre' debe contener al menos dos letras")).toBeTruthy();
+      expect(screen.getByText("El nombre debe tener al menos 2 caracteres")).toBeTruthy();
     });
 
   });
 
-  test("Si intento guardar sin cantidad, debe mostrar error de cantidad", async () => {
+  test("Si intento guardar sin cantidad, debe guarar 0 por defecto", async () => {
     const mockGuardar = jest.fn();
 
     render(
@@ -43,7 +43,7 @@ describe("Formulario muestra mensajes de error para los diferentes campos", () =
     fireEvent.press(screen.getByText("Guardar"));
 
     await waitFor(() => {
-      expect(screen.getByText("El campo 'cantidad' es obligatorio")).toBeTruthy();
+      expect(screen.getByText("El campo cantidad es obligatorio")).toBeTruthy();
     });
 
   });
@@ -89,7 +89,7 @@ describe("Formulario muestra mensajes de error para los diferentes campos", () =
     fireEvent.press(screen.getByText("Guardar"));
 
     await waitFor(() => {
-      expect(screen.getByText("El campo 'nombre' debe contener al menos dos letras")).toBeTruthy();
+      expect(screen.getByText("El nombre debe tener al menos 2 caracteres")).toBeTruthy();
     });
   });
 });

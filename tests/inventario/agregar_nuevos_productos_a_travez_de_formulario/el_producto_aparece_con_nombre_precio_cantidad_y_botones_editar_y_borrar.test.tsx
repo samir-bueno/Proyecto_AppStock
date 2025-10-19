@@ -87,7 +87,7 @@ describe("El producto aparece en la lista con los campos guardados", () => {
       expect(screen.getByText("$1200")).toBeTruthy();
       expect(screen.getByText("5")).toBeTruthy();
 
-      expect(screen.getByTestId("edit-button")).toBeTruthy();
+      expect(screen.getByTestId("Editar")).toBeTruthy();
       expect(screen.getByTestId("delete-button")).toBeTruthy();
     });
 

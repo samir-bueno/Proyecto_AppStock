@@ -260,7 +260,7 @@ export default function InventarioScreen() {
           <TouchableOpacity
             style={styles.editButton}
             onPress={() => openEditModal(item)}
-            testID="edit-button"
+            testID="Editar"
           >
             <MaterialCommunityIcons name="pencil" size={20} color="white" />
           </TouchableOpacity>
