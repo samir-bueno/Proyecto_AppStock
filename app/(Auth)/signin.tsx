@@ -1,83 +1,93 @@
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { useAuth } from '@/contexts/AuthProvider';
-import { Link, useRouter } from "expo-router";
-import React, { useState } from "react";
-import { Alert, Button, StyleSheet, TextInput, View } from "react-native";
+import { useSigninForm } from "@/hooks/useSigninForm";
+import { Link } from "expo-router";
+import React from "react";
+import { Button, StyleSheet, TextInput, View } from "react-native";
 
 export default function SigninForm() {
-  const router = useRouter();
-  const [nombre, setNombre] = useState("");
-  const [email, setEmail] = useState("");
-  const [contraseña, setContraseña] = useState("");
-  const [confirmacion, setConfirmacion] = useState("");
-  const [loading, setLoading] = useState(false);
-  const { register } = useAuth();
+  const { formData, loading, errors, handleFieldChange, handleCrearCuenta } =
+    useSigninForm();
 
-  const handleCrearCuenta = async () => {
-    if (!nombre || !email || !contraseña || !confirmacion) {
-      Alert.alert("Error", "Por favor, completa todos los campos.");
-      return;
-    }
-    if (contraseña !== confirmacion) {
-      Alert.alert("Error", "Las contraseñas no coinciden.");
-      return;
-    }
-
-    setLoading(true);
-    const { success, error } = await register({
-      name: nombre,
-      email,
-      password: contraseña,
-      passwordConfirm: confirmacion,
-    });
-
-    if (success) {
-      Alert.alert("¡Éxito!", "Cuenta creada. Verifica tu correo.");
-      router.push("/(Auth)/login");
-    } else {
-      Alert.alert("Error", error || "Error al crear la cuenta");
-    }
-    setLoading(false);
+  const getInputStyle = (field: keyof typeof errors) => {
+    return errors[field] ? [styles.input, styles.inputError] : styles.input;
   };
 
   return (
     <View style={styles.container}>
-      <ThemedText type="title" style={styles.title}>Crear Cuenta</ThemedText>
-      <TextInput
-        style={styles.input}
-        placeholder="Nombre"
-        value={nombre}
-        onChangeText={setNombre}
-        autoCapitalize="words"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Correo electrónico"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Contraseña"
-        value={contraseña}
-        onChangeText={setContraseña}
-        secureTextEntry
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Confirmar contraseña"
-        value={confirmacion}
-        onChangeText={setConfirmacion}
-        secureTextEntry
-      />
+      <ThemedText type="title" style={styles.title}>
+        Crear Cuenta
+      </ThemedText>
+
+      {errors.general && (
+        <ThemedView style={styles.generalError}>
+          <ThemedText style={styles.generalErrorText}>
+            {errors.general}
+          </ThemedText>
+        </ThemedView>
+      )}
+
+      <View>
+        <TextInput
+          style={getInputStyle("nombre")}
+          placeholder="Nombre"
+          value={formData.nombre}
+          onChangeText={(value) => handleFieldChange("nombre", value)}
+          autoCapitalize="words"
+        />
+        {errors.nombre && (
+          <ThemedText style={styles.errorText}>{errors.nombre}</ThemedText>
+        )}
+      </View>
+
+      <View>
+        <TextInput
+          style={getInputStyle("email")}
+          placeholder="Correo electrónico"
+          value={formData.email}
+          onChangeText={(value) => handleFieldChange("email", value)}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+        {errors.email && (
+          <ThemedText style={styles.errorText}>{errors.email}</ThemedText>
+        )}
+      </View>
+
+      <View>
+        <TextInput
+          style={getInputStyle("contraseña")}
+          placeholder="Contraseña"
+          value={formData.contraseña}
+          onChangeText={(value) => handleFieldChange("contraseña", value)}
+          secureTextEntry
+        />
+        {errors.contraseña && (
+          <ThemedText style={styles.errorText}>{errors.contraseña}</ThemedText>
+        )}
+      </View>
+
+      <View>
+        <TextInput
+          style={getInputStyle("confirmacion")}
+          placeholder="Confirmar contraseña"
+          value={formData.confirmacion}
+          onChangeText={(value) => handleFieldChange("confirmacion", value)}
+          secureTextEntry
+        />
+        {errors.confirmacion && (
+          <ThemedText style={styles.errorText}>
+            {errors.confirmacion}
+          </ThemedText>
+        )}
+      </View>
+
       <Button
         title={loading ? "Creando cuenta..." : "Registrarse"}
         onPress={handleCrearCuenta}
         disabled={loading}
       />
+
       <ThemedView style={styles.footer}>
         <ThemedText>¿Ya tienes una cuenta?</ThemedText>
         <Link href="/(Auth)/login" style={styles.link}>
@@ -105,9 +115,31 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
     borderRadius: 8,
     paddingHorizontal: 16,
-    marginBottom: 16,
+    marginBottom: 8,
     borderWidth: 1,
     borderColor: "#ddd",
+  },
+  inputError: {
+    borderColor: "#ff3b30",
+    borderWidth: 1,
+  },
+  errorText: {
+    color: "#ff3b30",
+    fontSize: 12,
+    marginBottom: 12,
+    marginLeft: 4,
+  },
+  generalError: {
+    backgroundColor: "#ffebee",
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: "#ff3b30",
+  },
+  generalErrorText: {
+    color: "#ff3b30",
+    fontSize: 14,
   },
   footer: {
     marginTop: 20,
