@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthProvider";
+import { checkEmailExists } from "@/services/pocketbaseServices";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { z } from "zod";
@@ -17,6 +18,7 @@ export const signupSchema = z
   });
 
 export type SignupFormData = z.infer<typeof signupSchema>;
+
 
 // Tipo específico para errores que permite undefined
 type FormErrors = {
@@ -65,6 +67,7 @@ export const useSigninForm = () => {
     if (!validateForm()) return;
 
     setLoading(true);
+    
     const { success, error } = await register({
       name: formData.nombre.trim(),
       email: formData.email.trim(),
@@ -76,16 +79,18 @@ export const useSigninForm = () => {
       router.push("/(Auth)/login");
     } else {
       // Detectar error de email duplicado
-      const errorMessage = error?.toLowerCase() || "";
-      if (
-        errorMessage.includes("email") ||
-        errorMessage.includes("exist") ||
-        errorMessage.includes("duplicado")
-      ) {
-        setErrors({ email: "Este email ya está registrado" });
-      } else {
-        setErrors({ general: error || "Error al crear la cuenta" });
-      }
+      const emailTomado = await checkEmailExists(formData.email.trim());
+      try {
+      if (emailTomado) {
+            setErrors({ general: "Este email ya está registrado" });
+            setLoading(false);
+            return; 
+        }
+    } catch (e) {
+        setErrors({ general: "Error al verificar el email. Intenta de nuevo." });
+        setLoading(false);
+        return;
+    }
     }
     setLoading(false);
   };

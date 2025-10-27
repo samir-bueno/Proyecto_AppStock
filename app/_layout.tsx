@@ -12,7 +12,6 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 function AppContent() {
   const { isAuthenticated, isLoading } = useAuth();
-  const colorScheme = useColorScheme();
   if (isLoading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>

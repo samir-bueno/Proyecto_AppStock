@@ -95,11 +95,31 @@ export const loginUser = async (email: string, password: string): Promise<ApiRes
 
     return { success: true, data: record };
   } catch (error: any) {
-    console.error("Error en loginUser:", error);
     return { 
       success: false, 
       error: error.response?.data?.message || error.message 
     };
+  }
+};
+
+export const checkEmailExists = async (email: string): Promise<boolean> => {
+  try {
+    const response = await axiosInstance.get(
+      '/api/collections/users/records', 
+      {
+        params: {
+          filter: `(email='${email}')`,
+          perPage: 1, 
+        }
+      }
+    );
+
+    // Si encontramos al menos un registro, el email existe.
+    return response.data.items.length > 0;
+  } catch (error) {
+    console.error("Error al verificar email:", error);
+    // En caso de error de conexión, asumimos que no hay duplicado para no bloquear.
+    return false;
   }
 };
 

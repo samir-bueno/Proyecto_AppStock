@@ -69,9 +69,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Función de Login
   const login = async (email: string, password: string) => {
-    setIsLoading(true);
     const result = await loginUser(email, password);
-    console.log("Login result in AuthProvider:", result);
+
     if (result.success && result.data) {
       setUser(result.data as UserModel);
       setIsAuthenticated(true);
@@ -83,7 +82,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
       setIsAuthenticated(false);
     }
-    setIsLoading(false);
     return { success: result.success, error: result.error };
   };
 
@@ -94,9 +92,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     password: string;
     passwordConfirm: string;
   }) => {
-    setIsLoading(true);
     const result = await registerUser(data);
-    setIsLoading(false);
     return { success: result.success, error: result.error };
   };
 

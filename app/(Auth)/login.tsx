@@ -1,79 +1,43 @@
-import { ThemedText } from "@/components/ThemedText";
-import { ThemedView } from "@/components/ThemedView";
-import { useAuth } from '@/contexts/AuthProvider';
-import { Image } from "expo-image";
-import { Link, useRouter } from "expo-router";
+import FormularioLogin from "@/components/authentication/formularioLogin";
+import { useAuth } from "@/contexts/AuthProvider";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { Alert, Button, StyleSheet, TextInput, View } from "react-native";
-export default function LoginForm() {
+import { StyleSheet, View } from "react-native";
+
+export default function Login() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [contraseña, setContraseña] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
 
-  const handleLogin = async () => {
-    if (!email || !contraseña) {
-      Alert.alert("Error", "Por favor, completa todos los campos.");
-      return;
-    }
-
+  const handleLogin = async (data: { email: string; contraseña: string }) => {
     setLoading(true);
-    const { success, error } = await login(email, contraseña);
-    console.log("Login response:", { success, error });
+    setError(null);
 
+    const { success, error } = await login(data.email, data.contraseña);
+    
     if (success === true) {
       router.replace("/(tabs)/ventas"); // Redirige a la pantalla principal
     } else {
-      const errorMessage = error?.includes("Failed to fetch")
+      const errorMessage = error?.includes("Network Error")
         ? "Error de conexión"
-        : error || "Credenciales incorrectas";
-      Alert.alert("Error", errorMessage);
+        : "Credenciales incorrectas";
+      setError(errorMessage);
     }
     setLoading(false);
   };
 
   return (
     <View style={styles.container}>
-      <View style={styles.imageContainer}>
-        <Image
-          style={styles.image}
-          source="https://artely.com.br/site/wp-content/uploads/2023/07/carrefour-logo-01-01.jpg"
-        />
-      </View>
-      <ThemedText type="title" style={styles.title}>
-        Iniciar sesión
-      </ThemedText>
-      <TextInput
-        style={styles.input}
-        placeholder="Correo electrónico"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
+
+      <FormularioLogin
+        alGuardarLosDatosDelFormulario={handleLogin}
+        cargando={loading}
+        errorServidor={error}
       />
-      <TextInput
-        style={styles.input}
-        placeholder="Contraseña"
-        value={contraseña}
-        onChangeText={setContraseña}
-        secureTextEntry
-      />
-      <Button
-        title={loading ? "Cargando..." : "Ingresar"}
-        onPress={handleLogin}
-        disabled={loading}
-      />
-      <ThemedView style={styles.footer}>
-        <ThemedText>¿No tienes una cuenta?</ThemedText>
-        <Link href="/(Auth)/signin" style={styles.link}>
-          <ThemedText type="link">Crea una</ThemedText>
-        </Link>
-      </ThemedView>
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -81,11 +45,7 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: "#f5f5f5",
   },
-  title: {
-    fontSize: 24,
-    marginBottom: 20,
-    textAlign: "center",
-  },
+  title: { fontSize: 24, marginBottom: 20, textAlign: "center" },
   input: {
     height: 50,
     backgroundColor: "white",
@@ -95,22 +55,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ddd",
   },
-  footer: {
-    marginTop: 20,
+  footer: { marginTop: 20, alignItems: "center", gap: 10 },
+  link: { paddingVertical: 10 },
+  image: { borderRadius: 100, width: 60, height: 60, opacity: 0.8 },
+  imageContainer: { alignItems: "center", borderRadius: 100 },
+  errorContainer: {
+    backgroundColor: "#f8d7da",
+    borderColor: "#f5c6cb",
+    borderWidth: 1,
+    borderRadius: 5,
+    padding: 15,
+    marginBottom: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    gap: 10,
   },
-  link: {
-    paddingVertical: 10,
-  },
-  image: {
-    borderRadius: 100,
-    width: 60,
-    height: 60,
-    opacity: 0.8,
-  },
-  imageContainer: {
-    alignItems: "center",
-    borderRadius: 100,
-  },
+  errorText: { color: "#721c24", flex: 1 },
+  closeButton: { color: "#721c24", fontWeight: "bold", padding: 5 },
 });
