@@ -222,3 +222,31 @@ export const createCustomer = async (customerData: ClientData): Promise<ApiRespo
     };
   }
 };
+
+
+export const getTotalCustomerDebt = async (ownerId: string): Promise<ApiResponse<number>> => {
+  try {
+    const customersResponse = await getCustomersByOwner(ownerId); 
+
+    if (!customersResponse.success || !customersResponse.data) {
+      return { success: false, error: "No se pudieron cargar los datos de clientes para la deuda." };
+    }
+
+    const customers = customersResponse.data;
+    
+    // 2. Sumar la deuda de cada cliente
+    const totalDebt = customers.reduce((sum, customer) => {
+      // Usar parseFloat para convertir la cadena 'deuda' a número
+      return sum + parseFloat(customer.deuda || '0'); 
+    }, 0);
+
+    return { success: true, data: totalDebt };
+
+  } catch (error: any) {
+    console.error("Error en getTotalCustomerDebt:", error);
+    return { 
+      success: false, 
+      error: "Error calculando la deuda total" 
+    };
+  }
+};
