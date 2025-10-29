@@ -5,6 +5,7 @@ import {
   createCustomer,
   Customer,
   getCustomersByOwner,
+  updateCustomer,
 } from "@/services/pocketbaseServices";
 import { useEffect, useState } from "react";
 import { Alert } from "react-native";
@@ -14,6 +15,8 @@ export const useFiados = () => {
   const [clients, setClients] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false); 
+  const [editingClient, setEditingClient] = useState<Customer | null>(null); 
   const [addingClient, setAddingClient] = useState(false);
   const [errorDuplicado, setErrorDuplicado] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -39,7 +42,49 @@ export const useFiados = () => {
     loadClients();
   }, [user]);
 
-  // Función para agregar nuevo cliente
+  const openEditForm = (client: Customer) => {
+    setEditingClient(client);
+    setShowEditForm(true);
+  };
+
+  const closeEditForm = () => {
+    setShowEditForm(false);
+    setEditingClient(null);
+  };
+
+  const handleEditClient = async (clientData: {
+    nombre: string;
+    telefono?: string;
+  }) => {
+    if (!user || !editingClient) {
+      Alert.alert("Error", "No hay usuario autenticado o cliente seleccionado");
+      return;
+    }
+
+    if (!clientData.nombre.trim()) {
+      Alert.alert("Error", "El nombre es obligatorio");
+      return;
+    }
+
+    setAddingClient(true);
+
+    const result = await updateCustomer(editingClient.id, {
+      name: clientData.nombre,
+      phone: clientData.telefono || "",
+      // No modificamos deuda ni owner_id
+    });
+
+    if (result.success) {
+      Alert.alert("Éxito", "Cliente actualizado correctamente");
+      await loadClients(); // Recargamos la lista para ver los cambios
+      closeEditForm();
+    } else {
+      Alert.alert("Error", result.error);
+    }
+    setAddingClient(false);
+  };
+
+  // Función para agregar nuevo cliente (EXISTENTE - SIN CAMBIOS)
   const handleAddNewClient = async (clientData: {
     nombre: string;
     telefono?: string;
@@ -97,6 +142,8 @@ export const useFiados = () => {
     clients,
     loading,
     showAddForm,
+    showEditForm,
+    editingClient,
     addingClient,
     errorDuplicado,
     expandedId,
@@ -104,9 +151,12 @@ export const useFiados = () => {
     // Funciones
     loadClients,
     handleAddNewClient,
+    handleEditClient, 
     toggleDetails,
     openAddForm,
+    openEditForm, 
     closeAddForm,
+    closeEditForm, 
 
     // Setters para estados específicos si los necesitas
     setErrorDuplicado,

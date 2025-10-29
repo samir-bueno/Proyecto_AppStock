@@ -1,10 +1,10 @@
 // components/fiados/ClientListItem.tsx
 import { ThemedText } from "@/components/ThemedText";
 import { Customer } from "@/services/pocketbaseServices";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
 import {
   Alert,
-  Button,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -15,12 +15,14 @@ interface TarjetaFiadoProps {
   item: Customer;
   isExpanded: boolean;
   onToggle: (clientId: string) => void;
+  onEdit: (client: Customer) => void; 
 }
 
 const Tarjeta_fiado: React.FC<TarjetaFiadoProps> = ({
   item,
   isExpanded,
   onToggle,
+  onEdit, 
 }) => {
   return (
     <View style={styles.container}>
@@ -42,14 +44,29 @@ const Tarjeta_fiado: React.FC<TarjetaFiadoProps> = ({
 
         <ThemedText style={styles.clientDeuda}>{`$${item.deuda}`}</ThemedText>
 
-        <Button
-          title={isExpanded ? "Ocultar Detalles" : "Ver Detalles"}
-          onPress={(e) => {
-            e.stopPropagation();
+        <TouchableOpacity
+          style={styles.editButton}
+          onPress={() => {
+            onEdit(item); 
+          }}
+          testID="boton-editar"
+        >
+          <MaterialCommunityIcons name="pencil" size={20} color="white" />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.detailsButton}
+          onPress={() => {
             onToggle(item.id);
           }}
-          color="#841584"
-        />
+          testID="boton-detalles"
+        >
+          <MaterialCommunityIcons 
+            name={isExpanded ? "chevron-up" : "chevron-down"} 
+            size={24} 
+            color="#841584" 
+          />
+        </TouchableOpacity>
       </TouchableOpacity>
 
       <Collapsible collapsed={!isExpanded} duration={300}>
@@ -99,6 +116,23 @@ const styles = StyleSheet.create({
     color: "green",
     marginLeft: 10,
     marginRight: 10,
+  },
+  editButton: {
+    backgroundColor: "#ffa500",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 8,
+  },
+  detailsButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f0f0f0",
   },
   details: {
     backgroundColor: "white",

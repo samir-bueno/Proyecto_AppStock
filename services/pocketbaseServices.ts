@@ -223,6 +223,18 @@ export const createCustomer = async (customerData: ClientData): Promise<ApiRespo
   }
 };
 
+export const updateCustomer = async (id: string, data: Partial<ClientData>): Promise<ApiResponse> => {
+  try {
+    const response = await axiosInstance.patch(`/api/collections/customers/records/${id}`, data);
+    return { success: true, data: response.data };
+  } catch (error: any) {
+    console.error("Error en updateCustomer:", error);
+    return { 
+      success: false, 
+      error: error.response?.data?.message || error.message 
+    };
+  }
+};
 
 export const getTotalCustomerDebt = async (ownerId: string): Promise<ApiResponse<number>> => {
   try {

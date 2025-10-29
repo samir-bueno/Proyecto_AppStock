@@ -17,6 +17,9 @@ import { CuentasDeFiado } from "@/components/fiados/cuentasDeFiado";
 import Header from "@/components/global/header";
 import { useFiados } from "@/hooks/useFiados";
 
+// 🔥 AGREGAR: Importar el nuevo formulario de edición
+import FormularioParaEditarCliente from "@/components/fiados/editar_cliente_fiado";
+
 export default function FiadoScreen() {
   const {
     clients,
@@ -29,6 +32,12 @@ export default function FiadoScreen() {
     toggleDetails,
     openAddForm,
     closeAddForm,
+    // 🔥 AGREGAR: Nuevos estados y funciones para edición
+    showEditForm,
+    editingClient,
+    handleEditClient,
+    openEditForm,
+    closeEditForm,
   } = useFiados();
 
   if (loading) {
@@ -60,6 +69,8 @@ export default function FiadoScreen() {
               item={item}
               isExpanded={expandedId === item.id}
               onToggle={toggleDetails}
+              // 🔥 AGREGAR: Pasar la función para editar
+              onEdit={() => openEditForm(item)}
             />
           )}
         />
@@ -88,11 +99,31 @@ export default function FiadoScreen() {
             </View>
           </View>
         </Modal>
+
+        {/* 🔥 AGREGAR: Modal para editar cliente */}
+        <Modal
+          visible={showEditForm}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => closeEditForm()}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <FormularioParaEditarCliente
+                alCerrarElFormulario={() => closeEditForm()}
+                alGuardarLosDatosDelFormulario={handleEditClient}
+                editandoCliente={addingClient}
+                clienteExistente={editingClient}
+              />
+            </View>
+          </View>
+        </Modal>
       </View>
     </SafeAreaView>
   );
 }
 
+// Tus estilos permanecen EXACTAMENTE igual
 export const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
@@ -176,7 +207,7 @@ export const styles = StyleSheet.create({
     elevation: 2,
   },
   clientDeuda: {
-    fontSize: 24, // Tamaño grande para el monto
+    fontSize: 24,
     fontWeight: "normal",
     color: "green",
     marginLeft: 10,
@@ -230,7 +261,6 @@ export const styles = StyleSheet.create({
     fontWeight: "bold",
     marginLeft: 10,
   },
-  // Estilos para el modal
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -286,7 +316,6 @@ export const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
   },
-
   details: {
     marginTop: 16,
     paddingTop: 16,
