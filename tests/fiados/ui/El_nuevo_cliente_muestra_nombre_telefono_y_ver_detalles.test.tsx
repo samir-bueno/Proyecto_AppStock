@@ -73,7 +73,7 @@ describe("FiadosScreen: Registrar nuevo cliente", () => {
     expect(screen.getByText("Juan Perez")).toBeTruthy();
     expect(screen.getByText("Sin teléfono")).toBeTruthy();
     expect(screen.getByText("$0")).toBeTruthy();
-    expect(screen.getByText("Ver Detalles")).toBeTruthy();
+    expect(screen.getByTestId("boton-detalles")).toBeTruthy();
 
     // Usamos getAllByText si el "$0" pudiera aparecer en otros lugares,
     // tambien se puede usar testId para ser especificos
