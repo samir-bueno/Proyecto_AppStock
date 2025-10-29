@@ -1,7 +1,7 @@
-import React from 'react';
-import { render, screen } from '@testing-library/react-native';
 import VentaActual from '@/components/ventas/ventaActual';
 import { VentaProduct } from '@/services/pocketbaseServices';
+import { render, screen } from '@testing-library/react-native';
+import React from 'react';
 
 const mockHandleQuantityChange = jest.fn();
 
@@ -10,7 +10,7 @@ describe('VentaActual - Botones de venta', () => {
     jest.clearAllMocks();
   });
 
-  test('Se muestra debajo de todo los botones de "venta normal" y "venta fiado"', () => {
+  test('Se muestra los botones de "venta normal" y "venta fiado" una vez puesto el producto', () => {
     const mockProductosEnVenta: VentaProduct[] = [
       {
         id: '1',
@@ -31,6 +31,9 @@ describe('VentaActual - Botones de venta', () => {
         handleQuantityChange={mockHandleQuantityChange}
       />
     );
+
+    expect(screen.getByText('Laptop Gamer')).toBeTruthy();
+    expect(screen.getByText(/\$.*1200.*x.*2/)).toBeTruthy();
 
     expect(screen.getByText('Venta Normal')).toBeTruthy();
     expect(screen.getByText('Venta Fiado')).toBeTruthy();

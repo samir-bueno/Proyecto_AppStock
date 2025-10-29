@@ -28,6 +28,10 @@ const BusquedaProductos = ({
   cargando: boolean;
 
 }) => {
+  const productosConStock = filtrarProductos.filter(producto => 
+    Number(producto.quantity) > 0
+  );
+
   return (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
@@ -45,7 +49,7 @@ const BusquedaProductos = ({
       {elBuscadorSeMuestra && !cargando && (
         <FlatList
           nestedScrollEnabled={true}
-          data={filtrarProductos}
+          data={productosConStock}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <TouchableOpacity
@@ -66,8 +70,8 @@ const BusquedaProductos = ({
           ListEmptyComponent={
             <ThemedText style={styles.noResults}>
               {valorBusqueda
-                ? "No se encontraron productos"
-                : "No hay productos en tu inventario"}
+                ? "No se encontraron productos con stock disponible"
+                : "No hay productos con stock disponible en tu inventario"}
             </ThemedText>
           }
         />

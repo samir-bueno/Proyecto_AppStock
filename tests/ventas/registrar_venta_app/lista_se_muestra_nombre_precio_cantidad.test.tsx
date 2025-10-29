@@ -1,7 +1,7 @@
-import React from 'react';
-import { render, screen } from '@testing-library/react-native';
 import VentaActual from '@/components/ventas/ventaActual';
 import { VentaProduct } from '@/services/pocketbaseServices';
+import { render, screen } from '@testing-library/react-native';
+import React from 'react';
 
 
 const mockHandleQuantityChange = jest.fn();
@@ -49,6 +49,13 @@ describe('VentaActual - Productos en venta', () => {
 
 
    // VERIFICACIÓN: Cada producto muestra su NOMBRE, PRECIO y CANTIDAD
+
+  // <Text>
+  //    $          {/* Símbolo moneda */}
+  //   1200        {/* Precio */}
+  //    x          {/* Separador */}
+  //   2           {/* Cantidad */}
+  // </Text>
    expect(screen.getByText('Laptop Gamer')).toBeTruthy();
    expect(screen.getByText(/\$.*1200.*x.*2/)).toBeTruthy();
    expect(screen.getByText('2')).toBeTruthy();
