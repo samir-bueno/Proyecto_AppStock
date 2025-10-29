@@ -1,7 +1,12 @@
 import AgregarClienteFiado from "@/components/fiados/agregar_cliente_fiado";
+import ConfirmacionEliminar from "@/components/fiados/confirmacion_eliminar";
+import { CuentasDeFiado } from "@/components/fiados/cuentasDeFiado";
+import FormularioParaEditarCliente from "@/components/fiados/editar_cliente_fiado";
 import ListaDeFiados from "@/components/fiados/lista_de_fiados";
 import Tarjeta_fiado from "@/components/fiados/lista_de_fiados/tarjeta_fiado";
+import Header from "@/components/global/header";
 import { ThemedText } from "@/components/ThemedText";
+import { useFiados } from "@/hooks/useFiados";
 import React from "react";
 import {
   ActivityIndicator,
@@ -12,32 +17,29 @@ import {
   View,
 } from "react-native";
 import FormuloarioParaAgregarUnFiado from "../../components/fiados/agregar_cliente_fiado/formulario_para_agregar_fiado";
-// Interfaces para TypeScript
-import { CuentasDeFiado } from "@/components/fiados/cuentasDeFiado";
-import Header from "@/components/global/header";
-import { useFiados } from "@/hooks/useFiados";
-
-// 🔥 AGREGAR: Importar el nuevo formulario de edición
-import FormularioParaEditarCliente from "@/components/fiados/editar_cliente_fiado";
 
 export default function FiadoScreen() {
   const {
     clients,
     loading,
     showAddForm,
+    showEditForm,
+    showDeleteModal,
     addingClient,
+    deleting,
     errorDuplicado,
     expandedId,
+    editingClient,
     handleAddNewClient,
+    handleEditClient,
+    confirmDeleteClient, 
     toggleDetails,
     openAddForm,
-    closeAddForm,
-    // 🔥 AGREGAR: Nuevos estados y funciones para edición
-    showEditForm,
-    editingClient,
-    handleEditClient,
     openEditForm,
+    openDeleteModal,
+    closeAddForm,
     closeEditForm,
+    closeDeleteModal,
   } = useFiados();
 
   if (loading) {
@@ -69,8 +71,8 @@ export default function FiadoScreen() {
               item={item}
               isExpanded={expandedId === item.id}
               onToggle={toggleDetails}
-              // 🔥 AGREGAR: Pasar la función para editar
               onEdit={() => openEditForm(item)}
+              onDelete={() => openDeleteModal(item)}
             />
           )}
         />
@@ -100,7 +102,7 @@ export default function FiadoScreen() {
           </View>
         </Modal>
 
-        {/* 🔥 AGREGAR: Modal para editar cliente */}
+        {/* Modal para editar cliente */}
         <Modal
           visible={showEditForm}
           animationType="slide"
@@ -118,12 +120,26 @@ export default function FiadoScreen() {
             </View>
           </View>
         </Modal>
+
+        <Modal
+          visible={showDeleteModal}
+          animationType="fade"
+          transparent={true}
+          onRequestClose={() => closeDeleteModal()}
+        >
+          <View style={styles.modalOverlay}>
+            <ConfirmacionEliminar
+              alCancelar={() => closeDeleteModal()}
+              alConfirmar={() => confirmDeleteClient()}
+              eliminando={deleting}
+            />
+          </View>
+        </Modal>
       </View>
     </SafeAreaView>
   );
 }
 
-// Tus estilos permanecen EXACTAMENTE igual
 export const styles = StyleSheet.create({
   safeArea: {
     flex: 1,

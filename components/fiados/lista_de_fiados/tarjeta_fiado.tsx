@@ -16,6 +16,7 @@ interface TarjetaFiadoProps {
   isExpanded: boolean;
   onToggle: (clientId: string) => void;
   onEdit: (client: Customer) => void; 
+  onDelete: (client: Customer) => void;
 }
 
 const Tarjeta_fiado: React.FC<TarjetaFiadoProps> = ({
@@ -23,6 +24,7 @@ const Tarjeta_fiado: React.FC<TarjetaFiadoProps> = ({
   isExpanded,
   onToggle,
   onEdit, 
+  onDelete,
 }) => {
   return (
     <View style={styles.container}>
@@ -44,29 +46,43 @@ const Tarjeta_fiado: React.FC<TarjetaFiadoProps> = ({
 
         <ThemedText style={styles.clientDeuda}>{`$${item.deuda}`}</ThemedText>
 
-        <TouchableOpacity
-          style={styles.editButton}
-          onPress={() => {
-            onEdit(item); 
-          }}
-          testID="boton-editar"
-        >
-          <MaterialCommunityIcons name="pencil" size={20} color="white" />
-        </TouchableOpacity>
+        <View style={styles.actionButtons}>
+          {/* Botón de editar */}
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={() => {
+              onEdit(item); 
+            }}
+            testID="boton-editar"
+          >
+            <MaterialCommunityIcons name="pencil" size={20} color="white" />
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.detailsButton}
-          onPress={() => {
-            onToggle(item.id);
-          }}
-          testID="boton-detalles"
-        >
-          <MaterialCommunityIcons 
-            name={isExpanded ? "chevron-up" : "chevron-down"} 
-            size={24} 
-            color="#841584" 
-          />
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={() => {
+              onDelete(item);
+            }}
+            testID="boton-eliminar"
+          >
+            <MaterialCommunityIcons name="delete" size={20} color="white" />
+          </TouchableOpacity>
+
+          {/* Botón de detalles */}
+          <TouchableOpacity
+            style={styles.detailsButton}
+            onPress={() => {
+              onToggle(item.id);
+            }}
+            testID="boton-detalles"
+          >
+            <MaterialCommunityIcons 
+              name={isExpanded ? "chevron-up" : "chevron-down"} 
+              size={24} 
+              color="#841584" 
+            />
+          </TouchableOpacity>
+        </View>
       </TouchableOpacity>
 
       <Collapsible collapsed={!isExpanded} duration={300}>
@@ -117,8 +133,21 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     marginRight: 10,
   },
+  actionButtons: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
   editButton: {
     backgroundColor: "#ffa500",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 8,
+  },
+  deleteButton: {
+    backgroundColor: "#dc3545",
     width: 40,
     height: 40,
     borderRadius: 20,

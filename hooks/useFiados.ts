@@ -1,9 +1,10 @@
-// hooks/useFiados.ts
+// hooks/useFiados.ts - AGREGAR FUNCIONALIDAD DE ELIMINACIÓN
 import { validateDuplicateClient } from "@/components/fiados/validacion_de_cliente";
 import { useAuth } from "@/contexts/AuthProvider";
 import {
   createCustomer,
   Customer,
+  deleteCustomer,
   getCustomersByOwner,
   updateCustomer,
 } from "@/services/pocketbaseServices";
@@ -15,9 +16,12 @@ export const useFiados = () => {
   const [clients, setClients] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [showEditForm, setShowEditForm] = useState(false); 
-  const [editingClient, setEditingClient] = useState<Customer | null>(null); 
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [editingClient, setEditingClient] = useState<Customer | null>(null);
+  const [deletingClient, setDeletingClient] = useState<Customer | null>(null); 
   const [addingClient, setAddingClient] = useState(false);
+  const [deleting, setDeleting] = useState(false); 
   const [errorDuplicado, setErrorDuplicado] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -42,6 +46,33 @@ export const useFiados = () => {
     loadClients();
   }, [user]);
 
+  const openDeleteModal = (client: Customer) => {
+    setDeletingClient(client);
+    setShowDeleteModal(true);
+  };
+
+  const closeDeleteModal = () => {
+    setShowDeleteModal(false);
+    setDeletingClient(null);
+  };
+
+  const confirmDeleteClient = async () => {
+    if (!deletingClient || !user) return;
+
+    setDeleting(true);
+    const result = await deleteCustomer(deletingClient.id);
+
+    if (result.success) {
+      Alert.alert("Éxito", "Cliente marcado como inactivo");
+      await loadClients(); // Recargar la lista (no mostrará inactivos)
+      closeDeleteModal();
+    } else {
+      Alert.alert("Error", result.error || "Error al eliminar el cliente");
+    }
+    setDeleting(false);
+  };
+
+  // Las demás funciones permanecen igual...
   const openEditForm = (client: Customer) => {
     setEditingClient(client);
     setShowEditForm(true);
@@ -52,10 +83,7 @@ export const useFiados = () => {
     setEditingClient(null);
   };
 
-  const handleEditClient = async (clientData: {
-    nombre: string;
-    telefono?: string;
-  }) => {
+  const handleEditClient = async (clientData: { nombre: string; telefono?: string }) => {
     if (!user || !editingClient) {
       Alert.alert("Error", "No hay usuario autenticado o cliente seleccionado");
       return;
@@ -67,16 +95,14 @@ export const useFiados = () => {
     }
 
     setAddingClient(true);
-
     const result = await updateCustomer(editingClient.id, {
       name: clientData.nombre,
       phone: clientData.telefono || "",
-      // No modificamos deuda ni owner_id
     });
 
     if (result.success) {
       Alert.alert("Éxito", "Cliente actualizado correctamente");
-      await loadClients(); // Recargamos la lista para ver los cambios
+      await loadClients();
       closeEditForm();
     } else {
       Alert.alert("Error", result.error);
@@ -84,12 +110,7 @@ export const useFiados = () => {
     setAddingClient(false);
   };
 
-  // Función para agregar nuevo cliente (EXISTENTE - SIN CAMBIOS)
-  const handleAddNewClient = async (clientData: {
-    nombre: string;
-    telefono?: string;
-    deuda: string;
-  }) => {
+  const handleAddNewClient = async (clientData: { nombre: string; telefono?: string; deuda: string }) => {
     if (!user) {
       Alert.alert("Error", "No hay usuario autenticado");
       return;
@@ -100,7 +121,6 @@ export const useFiados = () => {
       return;
     }
 
-    // Validar duplicados
     if (validateDuplicateClient(clients, clientData.nombre)) {
       setErrorDuplicado(true);
       return;
@@ -118,7 +138,7 @@ export const useFiados = () => {
 
     if (result.success) {
       Alert.alert("Éxito", "Cliente agregado correctamente");
-      await loadClients(); // Recargamos la lista para ver el nuevo cliente
+      await loadClients();
       setShowAddForm(false);
     } else {
       Alert.alert("Error", result.error);
@@ -143,22 +163,28 @@ export const useFiados = () => {
     loading,
     showAddForm,
     showEditForm,
+    showDeleteModal,
     editingClient,
+    deletingClient,
     addingClient,
+    deleting, 
     errorDuplicado,
     expandedId,
 
     // Funciones
     loadClients,
     handleAddNewClient,
-    handleEditClient, 
+    handleEditClient,
+    confirmDeleteClient,
     toggleDetails,
     openAddForm,
-    openEditForm, 
+    openEditForm,
+    openDeleteModal, 
     closeAddForm,
-    closeEditForm, 
+    closeEditForm,
+    closeDeleteModal,
 
-    // Setters para estados específicos si los necesitas
+    // Setters
     setErrorDuplicado,
   };
 };

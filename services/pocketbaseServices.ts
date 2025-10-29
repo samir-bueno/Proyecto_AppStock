@@ -14,6 +14,7 @@ export interface ClientData {
   phone?: string;
   deuda: string | "0";
   owner_id: string;
+  activo?: boolean;
 }
 
 export interface Product {
@@ -37,6 +38,7 @@ export interface Customer {
   phone?: string;
   deuda: string;
   owner_id: string;
+  activo?: boolean; 
   created?: string;
   updated?: string;
 }
@@ -84,10 +86,8 @@ export const loginUser = async (email: string, password: string): Promise<ApiRes
 
     const { token, record } = response.data;
     
-    // 🔥 AGREGAR AWAIT - Esto es crucial
     await AsyncStorage.setItem('pb_auth_token', token);
     
-    // También agregar await aquí
     try {
       await AsyncStorage.setItem('pb_auth_user', JSON.stringify(record));
     } catch (e) {
@@ -114,11 +114,9 @@ export const checkEmailExists = async (email: string): Promise<boolean> => {
       }
     );
 
-    // Si encontramos al menos un registro, el email existe.
     return response.data.items.length > 0;
   } catch (error) {
     console.error("Error al verificar email:", error);
-    // En caso de error de conexión, asumimos que no hay duplicado para no bloquear.
     return false;
   }
 };
@@ -141,7 +139,6 @@ export const getProductsByOwner = async (ownerId: string): Promise<ApiResponse<P
       },
     });
     
-    // PocketBase devuelve los items en la propiedad "items"
     return { success: true, data: response.data.items };
   } catch (error: any) {
     console.error("Error en getProductsByOwner:", error);
@@ -196,7 +193,7 @@ export const getCustomersByOwner = async (ownerId: string): Promise<ApiResponse<
   try {
     const response = await axiosInstance.get('/api/collections/customers/records', {
       params: {
-        filter: `owner_id = "${ownerId}"`,
+        filter: `owner_id = "${ownerId}" && activo = true`,
       },
     });
     
@@ -210,9 +207,32 @@ export const getCustomersByOwner = async (ownerId: string): Promise<ApiResponse<
   }
 };
 
+export const getAllCustomersByOwner = async (ownerId: string): Promise<ApiResponse<Customer[]>> => {
+  try {
+    const response = await axiosInstance.get('/api/collections/customers/records', {
+      params: {
+        filter: `owner_id = "${ownerId}"`, // SIN FILTRO DE ACTIVO
+      },
+    });
+    
+    return { success: true, data: response.data.items };
+  } catch (error: any) {
+    console.error("Error en getAllCustomersByOwner:", error);
+    return { 
+      success: false, 
+      error: "No se pudieron cargar los clientes" 
+    };
+  }
+};
+
 export const createCustomer = async (customerData: ClientData): Promise<ApiResponse> => {
   try {
-    const response = await axiosInstance.post('/api/collections/customers/records', customerData);
+    const dataConActivo = {
+      ...customerData,
+      activo: true
+    };
+    
+    const response = await axiosInstance.post('/api/collections/customers/records', dataConActivo);
     return { success: true, data: response.data };
   } catch (error: any) {
     console.error("Error en createCustomer:", error);
@@ -236,6 +256,21 @@ export const updateCustomer = async (id: string, data: Partial<ClientData>): Pro
   }
 };
 
+export const deleteCustomer = async (id: string): Promise<ApiResponse> => {
+  try {
+    const response = await axiosInstance.patch(`/api/collections/customers/records/${id}`, {
+      activo: false // Marcamos como inactivo en lugar de eliminar
+    });
+    return { success: true, data: response.data };
+  } catch (error: any) {
+    console.error("Error en deleteCustomer:", error);
+    return { 
+      success: false, 
+      error: error.response?.data?.message || error.message 
+    };
+  }
+};
+
 export const getTotalCustomerDebt = async (ownerId: string): Promise<ApiResponse<number>> => {
   try {
     const customersResponse = await getCustomersByOwner(ownerId); 
@@ -246,9 +281,7 @@ export const getTotalCustomerDebt = async (ownerId: string): Promise<ApiResponse
 
     const customers = customersResponse.data;
     
-    // 2. Sumar la deuda de cada cliente
     const totalDebt = customers.reduce((sum, customer) => {
-      // Usar parseFloat para convertir la cadena 'deuda' a número
       return sum + parseFloat(customer.deuda || '0'); 
     }, 0);
 
