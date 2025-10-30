@@ -1,10 +1,12 @@
 // tests/venta-total.test.tsx
 import VentaActual from '@/components/ventas/ventaActual';
+import { AuthProvider } from '@/contexts/AuthProvider';
 import { VentaProduct } from '@/services/pocketbaseServices';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import React from 'react';
 
 const mockHandleQuantityChange = jest.fn();
+const mockHandleVender = jest.fn();
 
 describe('VentaActual - Actualización del total', () => {
   beforeEach(() => {
@@ -30,11 +32,13 @@ describe('VentaActual - Actualización del total', () => {
       <VentaActual
         productosEnVenta={mockProductosEnVenta}
         handleQuantityChange={mockHandleQuantityChange}
-      />
+        handleVender={mockHandleVender}
+      />,
+      {wrapper: AuthProvider}
     );
 
     // Verificar el total INICIAL (2 laptops x $1200 = $2400)
-    expect(screen.getByText('$2400.00')).toBeTruthy();
+    expect(screen.getByTestId("total-value")).toHaveTextContent("$2400");
 
     const botonMas = screen.getByText('+');
     fireEvent.press(botonMas);
@@ -53,11 +57,13 @@ describe('VentaActual - Actualización del total', () => {
       <VentaActual
         productosEnVenta={productosActualizados}
         handleQuantityChange={mockHandleQuantityChange}
-      />
+        handleVender={mockHandleVender}
+      />,
+      {wrapper: AuthProvider}
     );
 
     // Verificar que el total se ACTUALIZÓ (3 laptops x $1200 = $3600)
-    expect(screen.getByText('$3600.00')).toBeTruthy();
+    expect(screen.getByTestId("total-value")).toHaveTextContent("$3600");
     expect(screen.getByText('3')).toBeTruthy();
   });
 
@@ -80,11 +86,13 @@ describe('VentaActual - Actualización del total', () => {
       <VentaActual
         productosEnVenta={mockProductosEnVenta}
         handleQuantityChange={mockHandleQuantityChange}
-      />
+        handleVender={mockHandleVender}
+      />,
+      {wrapper: AuthProvider}
     );
 
     // Verificar el total INICIAL (3 laptops x $1200 = $3600)
-    expect(screen.getByText('$3600.00')).toBeTruthy();
+    expect(screen.getByTestId("total-value")).toHaveTextContent("$3600");
 
     const botonMenos = screen.getByText('-');
     fireEvent.press(botonMenos);
@@ -103,10 +111,12 @@ describe('VentaActual - Actualización del total', () => {
       <VentaActual
         productosEnVenta={productosActualizados}
         handleQuantityChange={mockHandleQuantityChange}
-      />
+        handleVender={mockHandleVender}
+      />,
+      {wrapper: AuthProvider}
     );
 
-    expect(screen.getByText('$2400.00')).toBeTruthy();
+    expect(screen.getByTestId("total-value")).toHaveTextContent("$2400");
     expect(screen.getByText('2')).toBeTruthy();
   });
 });

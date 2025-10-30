@@ -61,10 +61,10 @@ describe("Eliminar cliente fiado - marcado como inactivo", () => {
     fireEvent.press(botonEliminar);
 
     await waitFor(() => {
-      expect(screen.getByText("Marcar como Inactivo")).toBeTruthy();
+      expect(screen.getByText("Confirmar")).toBeTruthy();
     });
     
-    fireEvent.press(screen.getByText("Marcar como Inactivo"));
+    fireEvent.press(screen.getByText("Confirmar"));
 
     await waitFor(() => {
       expect(mockedDeleteCustomer).toHaveBeenCalledWith("cliente123");

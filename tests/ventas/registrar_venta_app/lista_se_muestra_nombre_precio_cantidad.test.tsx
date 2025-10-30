@@ -1,4 +1,5 @@
 import VentaActual from '@/components/ventas/ventaActual';
+import { AuthProvider } from '@/contexts/AuthProvider';
 import { VentaProduct } from '@/services/pocketbaseServices';
 import { render, screen } from '@testing-library/react-native';
 import React from 'react';
@@ -44,7 +45,9 @@ describe('VentaActual - Productos en venta', () => {
      <VentaActual
        productosEnVenta={mockProductosEnVenta}
        handleQuantityChange={mockHandleQuantityChange}
-     />
+       handleVender={mockHandleQuantityChange}
+     />,
+     {wrapper: AuthProvider}
    );
 
 

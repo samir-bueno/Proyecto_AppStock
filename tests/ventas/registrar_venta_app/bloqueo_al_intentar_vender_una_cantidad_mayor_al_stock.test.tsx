@@ -49,7 +49,7 @@ describe('Bloqueo de venta mayor al stock', () => {
     expect(screen.getByText('Laptop')).toBeTruthy();
     expect(screen.getByText('2')).toBeTruthy(); 
     expect(screen.getByText(/\$.*1200/)).toBeTruthy();
-    expect(screen.getByText('$2400')).toBeTruthy();
+    expect(screen.getByTestId("total-value")).toHaveTextContent("$2400");
 
     // Intentar vender 1 más, sería 3, pero stock es 2
     const botonMas = screen.getByText('+');

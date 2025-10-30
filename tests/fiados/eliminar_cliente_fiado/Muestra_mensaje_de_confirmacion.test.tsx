@@ -51,7 +51,7 @@ describe("Eliminar cliente fiado - confirmación", () => {
     expect(screen.getByText("El cliente será marcado como inactivo y ya no aparecerá en la lista principal.")).toBeTruthy();
 
     expect(screen.getByText("Cancelar")).toBeTruthy();
-    expect(screen.getByText("Marcar como Inactivo")).toBeTruthy();
+    expect(screen.getByText("Confirmar")).toBeTruthy();
 
   }, 10000);
 });
