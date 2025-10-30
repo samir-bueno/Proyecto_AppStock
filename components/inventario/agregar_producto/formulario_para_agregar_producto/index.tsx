@@ -1,5 +1,6 @@
 import { styles } from "@/app/(tabs)/fiados";
 import { ThemedText } from "@/components/ThemedText";
+import { useCameraState } from '@/hooks/useCameraState'; // ← NUEVA IMPORTACIÓN
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useEffect } from "react";
@@ -12,7 +13,7 @@ import {
   View,
 } from "react-native";
 import { z } from "zod";
-
+import { BarcodeScannerModal } from "../../BarcodeScannerModal";
 
 // Define Zod schema for form validation
 const schema = z.object({
@@ -47,6 +48,7 @@ const schema = z.object({
 const FormularioParaAgregarUnProducto = ({
   alCerrarElFormulario,
   alGuardarLosDatosDelFormulario,
+  agregandoProducto,
   productoExistente,
 }: {
   alCerrarElFormulario: () => void;
@@ -59,12 +61,16 @@ const FormularioParaAgregarUnProducto = ({
     codigo_barras?: string;
   };
 }) => {
+  // ↓↓↓ CAMBIO AQUÍ - usa el hook en lugar de useState ↓↓↓
+  const { showScanner, openCamera, closeCamera } = useCameraState();
+
   // Initialize the form with React Hook Form and Zod schema resolver
   const {
     control,
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
   } = useForm({
     resolver: zodResolver(schema),
     mode: "onChange",
@@ -97,6 +103,10 @@ const FormularioParaAgregarUnProducto = ({
     }
   }, [productoExistente, reset]);
 
+  const handleBarcodeScanned = (barcode: string) => {
+    setValue("codigo_barras", barcode);
+    closeCamera(); // ← CAMBIO AQUÍ
+  };
 
   // Function to handle form submission
   const onSubmit = (data: z.infer<typeof schema>) => {
@@ -159,11 +169,10 @@ const FormularioParaAgregarUnProducto = ({
               const newValue = Math.max(0, numericValue - 1);
               onChange(String(newValue));
             };
-           
             return (
               <View style={styles_para_formulario.quantityContainer}>
                 <TextInput
-                  style={styles_para_formulario.quantityInput} // Usamos el mismo estilo que los demás inputs
+                  style={styles_para_formulario.quantityInput}
                   onBlur={onBlur}
                   onChangeText={onChange}
                   value={String(value)} 
@@ -223,23 +232,34 @@ const FormularioParaAgregarUnProducto = ({
             />
           )}
         />
-        {/* Cuarto campo */}
-        <Controller
-          control={control}
-          name="codigo_barras"
-          render={({ field: { onChange, onBlur, value, ref } }) => (
-            <TextInput
-              style={styles_para_formulario.inpu}
-              onBlur={onBlur}
-              onChangeText={onChange}
-              value={value}
-              placeholder="Codigo de barras (opcional)"
-              ref={ref}
-              placeholderTextColor="#999"
-              testID="Codigo de barras (opcional)"
-            />
-          )}
-        />
+
+        {/* Cuarto campo - Código de Barras con cámara */}
+        <View style={styles_para_formulario.barcodeContainer}>
+          <Controller
+            control={control}
+            name="codigo_barras"
+            render={({ field: { onChange, onBlur, value, ref } }) => (
+              <TextInput
+                style={[styles_para_formulario.inpu, styles_para_formulario.barcodeInput]}
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value}
+                placeholder="Codigo de barras (opcional)"
+                ref={ref}
+                placeholderTextColor="#999"
+                testID="Codigo de barras (opcional)"
+              />
+            )}
+          />
+          <TouchableOpacity 
+            style={styles_para_formulario.cameraButton}
+            onPress={openCamera} // ← CAMBIO AQUÍ
+            testID="camera-button"
+          >
+            <MaterialCommunityIcons name="camera" size={24} color="white" />
+          </TouchableOpacity>
+        </View>
+
         {(errors.nombre && (
           <Text style={styles_para_formulario.error}>
             {errors.nombre.message}
@@ -261,19 +281,30 @@ const FormularioParaAgregarUnProducto = ({
           <TouchableOpacity
             style={[styles.modalButton, styles.cancelButton]}
             onPress={onClose}
+            disabled={agregandoProducto}
           >
             <ThemedText style={styles.cancelButtonText}>Cancelar</ThemedText>
           </TouchableOpacity>
 
 
           <TouchableOpacity
-            style={[styles.modalButton, styles.saveButton]}
+            style={[styles.modalButton, styles.saveButton, agregandoProducto && styles_para_formulario.botonDeshabilitado]}
             onPress={handleSubmit(onSubmit)}
+            disabled={agregandoProducto}
           >
-            <ThemedText style={styles.saveButtonText}>Guardar</ThemedText>
+            <ThemedText style={styles.saveButtonText}>
+              {agregandoProducto ? "Guardando..." : "Guardar"}
+            </ThemedText>
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Modal del escáner */}
+      <BarcodeScannerModal
+        visible={showScanner}
+        onClose={closeCamera} // ← CAMBIO AQUÍ
+        onBarcodeScanned={handleBarcodeScanned}
+      />
     </View>
   );
 };
@@ -354,6 +385,27 @@ const styles_para_formulario = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
     minWidth: 80, // Para que no se vea demasiado pequeño
+  },
+  // Nuevos estilos para la cámara
+  barcodeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  barcodeInput: {
+    flex: 1,
+    marginRight: 10,
+  },
+  cameraButton: {
+    backgroundColor: "#a5a4a7ff",
+    padding: 12,
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
+    minWidth: 50,
+  },
+  botonDeshabilitado: {
+    backgroundColor: "#ccc",
   },
 });
 
