@@ -47,9 +47,8 @@ export interface Sale {
   id: string;
   owner_id: string;
   customer_id?: string; // opcional (null si es venta normal)
-  sale_date: string;
-  total: number;
-  sale_type: "normal" | "fiada";
+  total: string | "0";
+  sale_type: "normal" | "fiado";
   created?: string;
   updated?: string;
 }
@@ -229,6 +228,24 @@ export const getCustomersByOwner = async (ownerId: string): Promise<ApiResponse<
   }
 };
 
+export const getSalesByOwner = async (ownerId: string): Promise<ApiResponse<Sale[]>> => {
+  try {
+    const response = await axiosInstance.get('/api/collections/sales/records', {
+      params: {
+        filter: `owner_id = "${ownerId}"`,
+      },
+    });
+
+    return { success: true, data: response.data.items };
+  } catch (error: any) {
+    console.error("Error en getSalesByOwner:", error);
+    return {
+      success: false,
+      error: "No se pudieron cargar las ventas del usuario"
+    };
+  }
+};
+
 export const getAllCustomersByOwner = async (ownerId: string): Promise<ApiResponse<Customer[]>> => {
   try {
     const response = await axiosInstance.get('/api/collections/customers/records', {
@@ -314,6 +331,31 @@ export const getTotalCustomerDebt = async (ownerId: string): Promise<ApiResponse
     return {
       success: false,
       error: "Error calculando la deuda total"
+    };
+  }
+};
+
+export const getTotalGain = async (ownerId: string): Promise<ApiResponse<number>> => {
+  try {
+    const salesResponse = await getSalesByOwner(ownerId);
+
+    if (!salesResponse.success || !salesResponse.data) {
+      return { success: false, error: "No se pudieron cargar las ventas del usuario para la ganancia" };
+    }
+
+    const sales = salesResponse.data;
+
+    const totalGain = sales.reduce((sum, sale) => {
+      return sum + parseFloat(sale.total|| '0');
+    }, 0);
+
+    return { success: true, data: totalGain };
+
+  } catch (error: any) {
+    console.error("Error en getTotalGain:", error);
+    return {
+      success: false,
+      error: "Error calculando la ganancia total"
     };
   }
 };

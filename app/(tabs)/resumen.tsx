@@ -1,15 +1,17 @@
 import Header from "@/components/global/header";
 import { ThemedText } from "@/components/ThemedText";
 import { useAuth } from "@/contexts/AuthProvider";
-import { getTotalCustomerDebt } from "@/services/pocketbaseServices";
+import { getProductsByOwner, getTotalCustomerDebt, getTotalGain } from "@/services/pocketbaseServices";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
-import { SafeAreaView, StyleSheet, Text, View } from "react-native";
+import { Alert, SafeAreaView, StyleSheet, Text, View } from "react-native";
 
 
 export default function Resumen() {
  const { user } = useAuth();
  const [totalDebt, setTotalDebt] = useState<Number | 0>();
+ const [totalGain, setTotalGain] = useState<Number | 0>();
+ const [totalProducts, setTotalProducts] = useState<Number | 0>();
  const [loading, setLoading] = useState(true);
  const isAlert = true;
  const value = "$5000";
@@ -34,20 +36,35 @@ export default function Resumen() {
    const loadTotalGain = async () => {
    if (!user) return;
          setLoading(true);
-         const result = await getTotalCustomerDebt(user.id);
+         const result = await getTotalGain(user.id);
          if (result.success) {
-           const deuda_total = result.data
-           setTotalDebt(deuda_total)
+           const ganancia_total = result.data
+           setTotalGain(ganancia_total)
          } else {
            console.error(result.error);
          }
          setLoading(false);
  };
 
+  const loadTotalProducts = async () => {
+    if (!user) return;
+    setLoading(true);
+    const result = await getProductsByOwner(user.id);
+    if (result.success) {
+      // Mapear los datos de PocketBase a nuestra interfaz Product
+      const mappedProducts = result.data?.length
+      return setTotalProducts(mappedProducts)
+    } else {
+      Alert.alert("Error", result.error);
+    }
+    setLoading(false);
+  };
+
 
  useEffect(() => {
    loadTotalDebt();
    loadTotalGain();
+   loadTotalProducts();
  }, [user]);
 
 
@@ -87,7 +104,7 @@ export default function Resumen() {
 
 
            {/* Valor */}
-           <Text style={[styles.value]}>{value}</Text>
+           <Text style={[styles.value]}>${String(totalGain) || "0"}</Text>
 
 
            {/* Etiqueta */}
@@ -101,7 +118,7 @@ export default function Resumen() {
          <View style={[styles.card, isAlert && styles.alertCard]}>
            {/* Icono */}
            <MaterialCommunityIcons
-             name={"cash"}
+             name={"package-variant-closed"}
              size={36}
              color={isAlert ? "#FF6347" : "#000"} // Color del icono
              style={styles.icon}
@@ -110,13 +127,13 @@ export default function Resumen() {
 
            {/* Valor */}
            <Text style={[styles.value, isAlert && styles.alertValue]}>
-             {value}
+             {String(totalProducts) || "0"}
            </Text>
 
 
            {/* Etiqueta */}
            <Text style={styles.label} numberOfLines={2}>
-             {label}
+             Productos disponibles
            </Text>
          </View>
 
@@ -134,7 +151,7 @@ export default function Resumen() {
 
            {/* Valor */}
            <Text style={[styles.value, isAlert && styles.alertValue]}>
-             {String(totalDebt)}
+             ${String(totalDebt) || "0"}
            </Text>
 
 
@@ -149,7 +166,7 @@ export default function Resumen() {
          <View style={[styles.card, isAlert && styles.alertCard]}>
            {/* Icono */}
            <MaterialCommunityIcons
-             name={"cash"}
+             name={"alert-octagon-outline"}
              size={36}
              color={isAlert ? "#FF6347" : "#000"} // Color del icono
              style={styles.icon}
@@ -164,7 +181,7 @@ export default function Resumen() {
 
            {/* Etiqueta */}
            <Text style={styles.label} numberOfLines={2}>
-             {label}
+             productos por agotarse
            </Text>
          </View>
        </View>

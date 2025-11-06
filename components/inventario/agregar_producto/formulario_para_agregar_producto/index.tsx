@@ -253,7 +253,7 @@ const FormularioParaAgregarUnProducto = ({
           />
           <TouchableOpacity 
             style={styles_para_formulario.cameraButton}
-            onPress={openCamera} // ← CAMBIO AQUÍ
+            onPress={openCamera} 
             testID="camera-button"
           >
             <MaterialCommunityIcons name="camera" size={24} color="white" />
