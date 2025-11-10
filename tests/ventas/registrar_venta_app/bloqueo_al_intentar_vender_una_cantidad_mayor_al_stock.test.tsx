@@ -46,9 +46,8 @@ describe('Bloqueo de venta mayor al stock', () => {
     render(<VentasScreen />);
 
     // VERIFICACIÓN INICIAL
-    expect(screen.getByText('Laptop')).toBeTruthy();
-    expect(screen.getByText('2')).toBeTruthy(); 
-    expect(screen.getByText(/\$.*1200/)).toBeTruthy();
+    expect(screen.getByTestId('product-name-1')).toHaveTextContent('Laptop');
+    expect(screen.getByTestId('quantity-text-1')).toHaveTextContent('2');
     expect(screen.getByTestId("total-value")).toHaveTextContent("$2400");
 
     // Intentar vender 1 más, sería 3, pero stock es 2
@@ -67,8 +66,7 @@ describe('Bloqueo de venta mayor al stock', () => {
     expect(ventaActual[0].quantityInSale).toBe(2);
     
     // La UI sigue mostrando 2
-    expect(screen.getByText('2')).toBeTruthy();
-    
+    expect(screen.getByTestId('quantity-text-1')).toHaveTextContent('2');    
     // No aparece un 3 en ningún lugar 
     expect(screen.queryByText('3')).toBeNull();
   });

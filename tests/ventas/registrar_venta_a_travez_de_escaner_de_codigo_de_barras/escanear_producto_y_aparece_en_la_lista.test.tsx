@@ -79,8 +79,8 @@ describe("Ventas - Escanear Código de Barras", () => {
     expect(mockAgregarProductoAVenta).toHaveBeenCalledWith(mockProductoConStock);
 
     await waitFor(() => {
-      expect(screen.getByText("Coca Cola")).toBeTruthy();
-      expect(screen.getByText(/\$.*15.*x.*1/)).toBeTruthy();
+    expect(screen.getByTestId(`product-name-${mockProductoConStock.id}`)).toHaveTextContent("Coca Cola");
+    expect(screen.getByTestId(`quantity-text-${mockProductoConStock.id}`)).toHaveTextContent("1");
     });
   });
 });

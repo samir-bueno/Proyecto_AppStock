@@ -1,5 +1,6 @@
 import Header from "@/components/global/header";
 import BusquedaProductos from "@/components/ventas/busqueda";
+import ConfirmSaleModal from "@/components/ventas/ConfirmSaleModal";
 import EscanearCodigoDeBarras from "@/components/ventas/escanearCodigoDeBarras";
 import VentaActual from "@/components/ventas/ventaActual";
 import { useVentas } from "@/hooks/useVentas";
@@ -19,13 +20,21 @@ export default function HomeScreen() {
     filteredProducts, 
     ventaActual, 
     isSearchFocused, 
+    showConfirmModal,
     handleQuantityChange, 
-    handleVendido, 
+    handleVentaNormal,
+    confirmarVenta,
+    cancelarVenta,
     setbusqueda, 
     setIsSearchFocused, 
     agregarProductoAVenta,
-    products // ← Agregado para pasar a EscanearCodigoDeBarras
+    products
   } = useVentas();
+
+  // Calcular el total para el modal
+  const totalVenta = ventaActual.reduce((sum, product) => {
+    return sum + (product.quantityInSale * parseFloat(product.price));
+  }, 0);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -35,16 +44,15 @@ export default function HomeScreen() {
 
       <FlatList
         style={styles.container}
-        data={[]} // Sin datos, solo la usamos para el layout
+        data={[]}
         keyExtractor={(item, index) => index.toString()}
         renderItem={null}
         keyboardShouldPersistTaps="handled"
         ListHeaderComponent={
           <>
-            {/* Componente de escaneo con cámara - props agregadas */}
             <EscanearCodigoDeBarras
               onProductoEscaneado={agregarProductoAVenta}
-              productos={products} // ← Pasa la lista completa de productos
+              productos={products}
             />
 
             <BusquedaProductos
@@ -60,10 +68,19 @@ export default function HomeScreen() {
             <VentaActual
               productosEnVenta={ventaActual}
               handleQuantityChange={handleQuantityChange}
-              handleVender={handleVendido}
+              handleVentaNormal={handleVentaNormal}
             />
           </>
         }
+      />
+
+      {/* Modal de confirmación */}
+      <ConfirmSaleModal
+        visible={showConfirmModal}
+        onClose={cancelarVenta}
+        onConfirm={confirmarVenta}
+        products={ventaActual}
+        total={totalVenta}
       />
     </SafeAreaView>
   );

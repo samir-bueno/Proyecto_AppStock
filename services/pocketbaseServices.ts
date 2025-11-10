@@ -420,3 +420,62 @@ export const createSaleItems = async (
     };
   }
 };
+
+export const updateProductStock = async (id: string, newQuantity: number): Promise<ApiResponse> => {
+  try {
+    const response = await axiosInstance.patch(`/api/collections/products/records/${id}`, {
+      quantity: newQuantity.toString()
+    });
+    return { success: true, data: response.data };
+  } catch (error: any) {
+    console.error("Error en updateProductStock:", error);
+    return {
+      success: false,
+      error: error.response?.data?.message || error.message
+    };
+  }
+};
+
+// Función para procesar una venta completa
+export const processSale = async (
+  saleData: Omit<Sale, "id" | "created" | "updated">,
+  saleItems: Omit<SaleItem, "id" | "created" | "sale_id">[]
+): Promise<ApiResponse> => {
+  try {
+    // 1. Crear la venta
+    const saleResponse = await createSale(saleData);
+    if (!saleResponse.success || !saleResponse.data) {
+      return { success: false, error: saleResponse.error };
+    }
+
+    const saleId = saleResponse.data.id;
+
+    // 2. Crear los items de venta con el sale_id
+    const itemsWithSaleId = saleItems.map(item => ({
+      ...item,
+      sale_id: saleId
+    }));
+
+    const itemsResponse = await createSaleItems(itemsWithSaleId);
+    if (!itemsResponse.success) {
+      return { success: false, error: itemsResponse.error };
+    }
+
+    // 3. Actualizar el stock de cada producto
+    for (const item of saleItems) {
+      const product = await axiosInstance.get(`/api/collections/products/records/${item.product_id}`);
+      const currentStock = parseInt(product.data.quantity);
+      const newStock = currentStock - item.quantity;
+      
+      await updateProductStock(item.product_id, newStock);
+    }
+
+    return { success: true, data: saleResponse.data };
+  } catch (error: any) {
+    console.error("Error en processSale:", error);
+    return {
+      success: false,
+      error: "No se pudo procesar la venta completa"
+    };
+  }
+};
