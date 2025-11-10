@@ -66,6 +66,30 @@ export const useVentas = () => {
      }
      setLoading(false);
    };
+   
+   const agregarProductoPorCodigoBarras = (codigoBarras: string) => {
+ const productoEncontrado = products.find(
+   producto => producto.barcode === codigoBarras
+ );
+
+
+ if (productoEncontrado) {
+   if (Number(productoEncontrado.quantity) > 0) {
+     agregarProductoAVenta(productoEncontrado);
+     return { success: true, producto: productoEncontrado };
+   } else {
+     return {
+       success: false,
+       error: `El producto "${productoEncontrado.product_name}" no tiene stock disponible.`
+     };
+   }
+ } else {
+   return {
+     success: false,
+     error: `No se encontró ningún producto con el código: ${codigoBarras}`
+   };
+ }
+};
 
 
    const handleVendido = async (productos: VentaProduct[], total: number, owner_id: string) => {
@@ -136,6 +160,9 @@ export const useVentas = () => {
    // Setters para estados específicos si los necesitas
    setbusqueda,
    setIsSearchFocused,
+
+   agregarProductoPorCodigoBarras,
+   products,
  };
 };
 
