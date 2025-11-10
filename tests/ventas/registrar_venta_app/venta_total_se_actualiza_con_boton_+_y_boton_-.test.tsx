@@ -1,4 +1,3 @@
-// tests/venta-total.test.tsx
 import VentaActual from '@/components/ventas/ventaActual';
 import { AuthProvider } from '@/contexts/AuthProvider';
 import { VentaProduct } from '@/services/pocketbaseServices';
@@ -6,7 +5,7 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import React from 'react';
 
 const mockHandleQuantityChange = jest.fn();
-const mockHandleVender = jest.fn();
+const mockHandleVentaNormal = jest.fn(); // Cambiado aquí
 
 describe('VentaActual - Actualización del total', () => {
   beforeEach(() => {
@@ -32,7 +31,7 @@ describe('VentaActual - Actualización del total', () => {
       <VentaActual
         productosEnVenta={mockProductosEnVenta}
         handleQuantityChange={mockHandleQuantityChange}
-        handleVender={mockHandleVender}
+        handleVentaNormal={mockHandleVentaNormal} // Cambiado aquí
       />,
       {wrapper: AuthProvider}
     );
@@ -57,7 +56,7 @@ describe('VentaActual - Actualización del total', () => {
       <VentaActual
         productosEnVenta={productosActualizados}
         handleQuantityChange={mockHandleQuantityChange}
-        handleVender={mockHandleVender}
+        handleVentaNormal={mockHandleVentaNormal} // Cambiado aquí
       />,
       {wrapper: AuthProvider}
     );
@@ -86,7 +85,7 @@ describe('VentaActual - Actualización del total', () => {
       <VentaActual
         productosEnVenta={mockProductosEnVenta}
         handleQuantityChange={mockHandleQuantityChange}
-        handleVender={mockHandleVender}
+        handleVentaNormal={mockHandleVentaNormal} // Cambiado aquí
       />,
       {wrapper: AuthProvider}
     );
@@ -111,7 +110,7 @@ describe('VentaActual - Actualización del total', () => {
       <VentaActual
         productosEnVenta={productosActualizados}
         handleQuantityChange={mockHandleQuantityChange}
-        handleVender={mockHandleVender}
+        handleVentaNormal={mockHandleVentaNormal} // Cambiado aquí
       />,
       {wrapper: AuthProvider}
     );

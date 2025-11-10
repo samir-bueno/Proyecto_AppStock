@@ -6,7 +6,7 @@ import React from 'react';
 
 
 const mockHandleQuantityChange = jest.fn();
-
+const mockHandleVentaNormal = jest.fn();
 
 describe('VentaActual - Productos en venta', () => {
  beforeEach(() => {
@@ -45,7 +45,7 @@ describe('VentaActual - Productos en venta', () => {
      <VentaActual
        productosEnVenta={mockProductosEnVenta}
        handleQuantityChange={mockHandleQuantityChange}
-       handleVender={mockHandleQuantityChange}
+       handleVentaNormal={mockHandleVentaNormal}
      />,
      {wrapper: AuthProvider}
    );
