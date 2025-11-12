@@ -310,55 +310,123 @@ export const deleteCustomer = async (id: string): Promise<ApiResponse> => {
   }
 };
 
-export const getTotalCustomerDebt = async (ownerId: string): Promise<ApiResponse<number>> => {
-  try {
-    const customersResponse = await getCustomersByOwner(ownerId);
+export const getTotalCustomerDebt = async (
+ ownerId: string
+): Promise<ApiResponse<number>> => {
+ try {
+   const customersResponse = await getCustomersByOwner(ownerId);
 
-    if (!customersResponse.success || !customersResponse.data) {
-      return { success: false, error: "No se pudieron cargar los datos de clientes para la deuda." };
-    }
 
-    const customers = customersResponse.data;
+   if (!customersResponse.success || !customersResponse.data) {
+     return {
+       success: false,
+       error: "No se pudieron cargar los datos de clientes para la deuda.",
+     };
+   }
 
-    const totalDebt = customers.reduce((sum, customer) => {
-      return sum + parseFloat(customer.deuda || '0');
-    }, 0);
 
-    return { success: true, data: totalDebt };
+   const customers = customersResponse.data;
 
-  } catch (error: any) {
-    console.error("Error en getTotalCustomerDebt:", error);
-    return {
-      success: false,
-      error: "Error calculando la deuda total"
-    };
-  }
+
+   const totalDebt = customers.reduce((sum, customer) => {
+     return sum + parseFloat(customer.deuda || "0");
+   }, 0);
+
+
+   return { success: true, data: totalDebt };
+ } catch (error: any) {
+   console.error("Error en getTotalCustomerDebt:", error);
+   return {
+     success: false,
+     error: "Error calculando la deuda total",
+   };
+ }
 };
 
-export const getTotalGain = async (ownerId: string): Promise<ApiResponse<number>> => {
-  try {
-    const salesResponse = await getSalesByOwner(ownerId);
 
-    if (!salesResponse.success || !salesResponse.data) {
-      return { success: false, error: "No se pudieron cargar las ventas del usuario para la ganancia" };
-    }
+export const getTotalGain = async (
+ ownerId: string
+): Promise<ApiResponse<number>> => {
+ try {
+   const salesResponse = await getSalesByOwner(ownerId);
 
-    const sales = salesResponse.data;
 
-    const totalGain = sales.reduce((sum, sale) => {
-      return sum + parseFloat(sale.total|| '0');
-    }, 0);
+   if (!salesResponse.success || !salesResponse.data) {
+     return {
+       success: false,
+       error: "No se pudieron cargar las ventas del usuario para la ganancia",
+     };
+   }
 
-    return { success: true, data: totalGain };
 
-  } catch (error: any) {
-    console.error("Error en getTotalGain:", error);
-    return {
-      success: false,
-      error: "Error calculando la ganancia total"
-    };
-  }
+   const sales = salesResponse.data;
+
+
+   const totalGain = sales.reduce((sum, sale) => {
+     return sum + parseFloat(sale.total || "0");
+   }, 0);
+
+
+   return { success: true, data: totalGain };
+ } catch (error: any) {
+   console.error("Error en getTotalGain:", error);
+   return {
+     success: false,
+     error: "Error calculando la ganancia total",
+   };
+ }
 };
+
+
+export const getProductsDisponibleByOwner = async (
+ ownerId: string
+): Promise<ApiResponse<Product[]>> => {
+ try {
+   const response = await axiosInstance.get(
+     "/api/collections/products/records",
+     {
+       params: {
+         filter: `owner_id = "${ownerId}" && quantity > 1`,
+       },
+     }
+   );
+
+
+   return { success: true, data: response.data.items };
+ } catch (error: any) {
+   console.error("Error en getProductsDisponibleByOwner:", error);
+   return {
+     success: false,
+     error: "No se pudo cargar el total de productos disponibles",
+   };
+ }
+};
+
+
+export const getProductsPorAgotarse = async (
+ ownerId: string
+): Promise<ApiResponse<Product[]>> => {
+ try {
+   const response = await axiosInstance.get(
+     "/api/collections/products/records",
+     {
+       params: {
+         filter: `owner_id = "${ownerId}" && quantity <= 5`,
+       },
+     }
+   );
+
+
+   return { success: true, data: response.data.items };
+ } catch (error: any) {
+   console.error("Error en getProductsPorAgotarse:", error);
+   return {
+     success: false,
+     error: "No se pudo cargar la cantidad de productos por agotarse",
+   };
+ }
+};
+
 
 export const postVenta = async (ventaData: any): Promise<ApiResponse> => {
   try {
@@ -479,3 +547,4 @@ export const processSale = async (
     };
   }
 };
+

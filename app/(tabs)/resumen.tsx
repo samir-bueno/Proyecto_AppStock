@@ -1,7 +1,12 @@
 import Header from "@/components/global/header";
 import { ThemedText } from "@/components/ThemedText";
 import { useAuth } from "@/contexts/AuthProvider";
-import { getProductsByOwner, getTotalCustomerDebt, getTotalGain } from "@/services/pocketbaseServices";
+import {
+  getProductsDisponibleByOwner,
+  getProductsPorAgotarse,
+  getTotalCustomerDebt,
+  getTotalGain,
+} from "@/services/pocketbaseServices";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import { Alert, SafeAreaView, StyleSheet, Text, View } from "react-native";
@@ -12,59 +17,74 @@ export default function Resumen() {
  const [totalDebt, setTotalDebt] = useState<Number | 0>();
  const [totalGain, setTotalGain] = useState<Number | 0>();
  const [totalProducts, setTotalProducts] = useState<Number | 0>();
+ const [totalProductsOut, setTotalProductsOut] = useState<Number | 0>();
  const [loading, setLoading] = useState(true);
  const isAlert = true;
- const value = "$5000";
- const label = "Ganancia";
 
 
  const loadTotalDebt = async () => {
    if (!user) return;
-         setLoading(true);
-         const result = await getTotalCustomerDebt(user.id);
-         if (result.success) {
-           const deuda_total = result.data
-           setTotalDebt(deuda_total)
-           console.log(result.data)
-         } else {
-           console.error(result.error);
-         }
-         setLoading(false);
+   setLoading(true);
+   const result = await getTotalCustomerDebt(user.id);
+   if (result.success) {
+     const deuda_total = result.data;
+     setTotalDebt(deuda_total);
+     console.log(result.data);
+   } else {
+     console.error(result.error);
+   }
+   setLoading(false);
  };
 
 
-   const loadTotalGain = async () => {
+ const loadTotalGain = async () => {
    if (!user) return;
-         setLoading(true);
-         const result = await getTotalGain(user.id);
-         if (result.success) {
-           const ganancia_total = result.data
-           setTotalGain(ganancia_total)
-         } else {
-           console.error(result.error);
-         }
-         setLoading(false);
+   setLoading(true);
+   const result = await getTotalGain(user.id);
+   if (result.success) {
+     const ganancia_total = result.data;
+     setTotalGain(ganancia_total);
+   } else {
+     console.error(result.error);
+   }
+   setLoading(false);
  };
 
-  const loadTotalProducts = async () => {
-    if (!user) return;
-    setLoading(true);
-    const result = await getProductsByOwner(user.id);
-    if (result.success) {
-      // Mapear los datos de PocketBase a nuestra interfaz Product
-      const mappedProducts = result.data?.length
-      return setTotalProducts(mappedProducts)
-    } else {
-      Alert.alert("Error", result.error);
-    }
-    setLoading(false);
-  };
+
+ const loadTotalProducts = async () => {
+   if (!user) return;
+   setLoading(true);
+   const result = await getProductsDisponibleByOwner(user.id);
+   if (result.success) {
+     // Mapear los datos de PocketBase a nuestra interfaz Product
+     const mappedProducts = result.data?.length;
+     return setTotalProducts(mappedProducts);
+   } else {
+     Alert.alert("Error", result.error);
+   }
+   setLoading(false);
+ };
+
+
+ const loadTotalProductsOut = async () => {
+   if (!user) return;
+   setLoading(true);
+   const result = await getProductsPorAgotarse(user.id);
+   if (result.success) {
+     const mappedProducts = result.data?.length;
+     return setTotalProductsOut(mappedProducts);
+   } else {
+     Alert.alert("error", result.error);
+   }
+   setLoading(false);
+ };
 
 
  useEffect(() => {
    loadTotalDebt();
    loadTotalGain();
    loadTotalProducts();
+   loadTotalProductsOut();
  }, [user]);
 
 
@@ -104,12 +124,14 @@ export default function Resumen() {
 
 
            {/* Valor */}
-           <Text style={[styles.value]}>${String(totalGain) || "0"}</Text>
+           <Text style={[styles.value]} testID="Valor-ganancia">
+             ${String(totalGain) || "0"}
+           </Text>
 
 
            {/* Etiqueta */}
            <Text style={styles.label} numberOfLines={2}>
-             {label}
+             Ganancias
            </Text>
          </View>
 
@@ -126,7 +148,10 @@ export default function Resumen() {
 
 
            {/* Valor */}
-           <Text style={[styles.value, isAlert && styles.alertValue]}>
+           <Text
+             style={[styles.value, isAlert && styles.alertValue]}
+             testID="Valor-productos-disponibles"
+           >
              {String(totalProducts) || "0"}
            </Text>
 
@@ -150,14 +175,17 @@ export default function Resumen() {
 
 
            {/* Valor */}
-           <Text style={[styles.value, isAlert && styles.alertValue]}>
+           <Text
+             style={[styles.value, isAlert && styles.alertValue]}
+             testID="Valor-deuda-clientes"
+           >
              ${String(totalDebt) || "0"}
            </Text>
 
 
            {/* Etiqueta */}
            <Text style={styles.label} numberOfLines={2}>
-             {label}
+             Deuda de clientes
            </Text>
          </View>
 
@@ -174,14 +202,17 @@ export default function Resumen() {
 
 
            {/* Valor */}
-           <Text style={[styles.value, isAlert && styles.alertValue]}>
-             {value}
+           <Text
+             style={[styles.value, isAlert && styles.alertValue]}
+             testID="Valor-productos-por-agotarse"
+           >
+             {String(totalProductsOut)}
            </Text>
 
 
            {/* Etiqueta */}
            <Text style={styles.label} numberOfLines={2}>
-             productos por agotarse
+             Productos por agotarse
            </Text>
          </View>
        </View>
