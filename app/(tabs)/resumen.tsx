@@ -8,12 +8,13 @@ import {
   getTotalGain,
 } from "@/services/pocketbaseServices";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, SafeAreaView, StyleSheet, Text, View } from "react-native";
-
+import { Alert, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function Resumen() {
  const { user } = useAuth();
+ const { push } = useRouter();
  const [totalDebt, setTotalDebt] = useState<Number | 0>();
  const [totalGain, setTotalGain] = useState<Number | 0>();
  const [totalProducts, setTotalProducts] = useState<Number | 0>();
@@ -164,7 +165,7 @@ export default function Resumen() {
 
 
          {/* tercera Fila */}
-         <View style={[styles.card, isAlert && styles.alertCard]}>
+         <TouchableOpacity onPress={() => push("/(resumen)/clientes_deuda")}  style={[styles.card, isAlert && styles.alertCard]}>
            {/* Icono */}
            <MaterialCommunityIcons
              name={"account-cash"}
@@ -187,7 +188,7 @@ export default function Resumen() {
            <Text style={styles.label} numberOfLines={2}>
              Deuda de clientes
            </Text>
-         </View>
+         </TouchableOpacity>
 
 
          {/* cuarta Fila */}

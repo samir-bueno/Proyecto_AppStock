@@ -3,27 +3,24 @@ import { ThemedText } from "@/components/ThemedText";
 import { Customer } from "@/services/pocketbaseServices";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
-import {
-  Alert,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Alert, StyleSheet, TouchableOpacity, View } from "react-native";
 import Collapsible from "react-native-collapsible";
 
 interface TarjetaFiadoProps {
   item: Customer;
   isExpanded: boolean;
+  isFiadosScreen: boolean;
   onToggle: (clientId: string) => void;
-  onEdit: (client: Customer) => void; 
+  onEdit: (client: Customer) => void;
   onDelete: (client: Customer) => void;
 }
 
 const Tarjeta_fiado: React.FC<TarjetaFiadoProps> = ({
   item,
   isExpanded,
+  isFiadosScreen,
   onToggle,
-  onEdit, 
+  onEdit,
   onDelete,
 }) => {
   return (
@@ -46,29 +43,34 @@ const Tarjeta_fiado: React.FC<TarjetaFiadoProps> = ({
 
         <ThemedText style={styles.clientDeuda}>{`$${item.deuda}`}</ThemedText>
 
+        {/* Siempre mostramos el contenedor de botones de acción */}
         <View style={styles.actionButtons}>
-          {/* Botón de editar */}
-          <TouchableOpacity
-            style={styles.editButton}
-            onPress={() => {
-              onEdit(item); 
-            }}
-            testID="boton-editar"
-          >
-            <MaterialCommunityIcons name="pencil" size={20} color="white" />
-          </TouchableOpacity>
+          {/* Botones de editar y eliminar solo si no es la pantalla de fiados */}
+          {isFiadosScreen && (
+            <>
+              <TouchableOpacity
+                style={styles.editButton}
+                onPress={() => {
+                  onEdit(item);
+                }}
+                testID="boton-editar"
+              >
+                <MaterialCommunityIcons name="pencil" size={20} color="white" />
+              </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.deleteButton}
-            onPress={() => {
-              onDelete(item);
-            }}
-            testID="boton-eliminar"
-          >
-            <MaterialCommunityIcons name="delete" size={20} color="white" />
-          </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => {
+                  onDelete(item);
+                }}
+                testID="boton-eliminar"
+              >
+                <MaterialCommunityIcons name="delete" size={20} color="white" />
+              </TouchableOpacity>
+            </>
+          )}
 
-          {/* Botón de detalles */}
+          {/* Botón de detalles - Siempre visible */}
           <TouchableOpacity
             style={styles.detailsButton}
             onPress={() => {
@@ -76,10 +78,10 @@ const Tarjeta_fiado: React.FC<TarjetaFiadoProps> = ({
             }}
             testID="boton-detalles"
           >
-            <MaterialCommunityIcons 
-              name={isExpanded ? "chevron-up" : "chevron-down"} 
-              size={24} 
-              color="#841584" 
+            <MaterialCommunityIcons
+              name={isExpanded ? "chevron-up" : "chevron-down"}
+              size={24}
+              color="#841584"
             />
           </TouchableOpacity>
         </View>

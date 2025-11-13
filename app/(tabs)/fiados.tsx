@@ -70,6 +70,7 @@ export default function FiadoScreen() {
             <Tarjeta_fiado
               item={item}
               isExpanded={expandedId === item.id}
+              isFiadosScreen={true}
               onToggle={toggleDetails}
               onEdit={() => openEditForm(item)}
               onDelete={() => openDeleteModal(item)}

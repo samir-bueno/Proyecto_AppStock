@@ -22,7 +22,10 @@ function AppContent() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       {isAuthenticated ? (
+        <>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="(resumen)" />
+        </>
       ) : (
         <Stack.Screen name="(Auth)" />
       )}
