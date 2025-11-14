@@ -2,6 +2,7 @@ import Header from "@/components/global/header";
 import BusquedaProductos from "@/components/ventas/busqueda";
 import ConfirmSaleModal from "@/components/ventas/ConfirmSaleModal";
 import EscanearCodigoDeBarras from "@/components/ventas/escanearCodigoDeBarras";
+import SelectCustomerModal from "@/components/ventas/SelectCustomerModal"; // ← Nuevo import
 import VentaActual from "@/components/ventas/ventaActual";
 import { useVentas } from "@/hooks/useVentas";
 import React from "react";
@@ -21,17 +22,22 @@ export default function HomeScreen() {
     ventaActual, 
     isSearchFocused, 
     showConfirmModal,
+    showCustomerModal, // ← Nuevo estado
+    customers, // ← Nuevo estado
     handleQuantityChange, 
     handleVentaNormal,
+    handleVentaFiado, // ← Nueva función
     confirmarVenta,
+    confirmarVentaFiada, // ← Nueva función
     cancelarVenta,
+    cancelarSeleccionCliente, // ← Nueva función
     setbusqueda, 
     setIsSearchFocused, 
     agregarProductoAVenta,
     products
   } = useVentas();
 
-  // Calcular el total para el modal
+  // Calcular el total para los modales
   const totalVenta = ventaActual.reduce((sum, product) => {
     return sum + (product.quantityInSale * parseFloat(product.price));
   }, 0);
@@ -69,17 +75,27 @@ export default function HomeScreen() {
               productosEnVenta={ventaActual}
               handleQuantityChange={handleQuantityChange}
               handleVentaNormal={handleVentaNormal}
+              handleVentaFiado={handleVentaFiado} // ← Nueva prop
             />
           </>
         }
       />
 
-      {/* Modal de confirmación */}
+      {/* Modal de confirmación para venta normal */}
       <ConfirmSaleModal
         visible={showConfirmModal}
         onClose={cancelarVenta}
         onConfirm={confirmarVenta}
         products={ventaActual}
+        total={totalVenta}
+      />
+
+      {/* Modal de selección de cliente para venta fiada */}
+      <SelectCustomerModal
+        visible={showCustomerModal}
+        onClose={cancelarSeleccionCliente}
+        onConfirm={confirmarVentaFiada}
+        customers={customers}
         total={totalVenta}
       />
     </SafeAreaView>

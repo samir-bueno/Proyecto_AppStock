@@ -43,10 +43,35 @@ describe("Ventas - Escanear Código de Barras", () => {
     let ventaActual: VentaProduct[] = [];
     
     (useVentas as jest.Mock).mockImplementation(() => ({
+      // Estados principales del test
       filteredProducts: [],
       ventaActual,
       agregarProductoAVenta: mockAgregarProductoAVenta,
       products: [mockProductoConStock],
+      
+      // Estados necesarios para evitar errores
+      user: { id: "test-user" },
+      loading: false,
+      busqueda: "",
+      isSearchFocused: false,
+      showConfirmModal: false,
+      showCustomerModal: false,
+      customers: [],
+      selectedCustomer: null,
+      
+      // Funciones necesarias para evitar errores
+      handleQuantityChange: jest.fn(),
+      handleVentaNormal: jest.fn(),
+      handleVentaFiado: jest.fn(),
+      confirmarVenta: jest.fn(),
+      confirmarVentaFiada: jest.fn(),
+      cancelarVenta: jest.fn(),
+      cancelarSeleccionCliente: jest.fn(),
+      setbusqueda: jest.fn(),
+      setIsSearchFocused: jest.fn(),
+      setShowConfirmModal: jest.fn(),
+      setShowCustomerModal: jest.fn(),
+      agregarProductoPorCodigoBarras: jest.fn(),
     }));
 
     const { rerender } = render(<VentasScreen />, {
@@ -73,14 +98,43 @@ describe("Ventas - Escanear Código de Barras", () => {
 
     // 5. Actualizar estado
     ventaActual = [...mockVentaActualConProducto];
+    
+    // Actualizar el mock con el nuevo estado
+    (useVentas as jest.Mock).mockImplementation(() => ({
+      filteredProducts: [],
+      ventaActual,
+      agregarProductoAVenta: mockAgregarProductoAVenta,
+      products: [mockProductoConStock],
+      user: { id: "test-user" },
+      loading: false,
+      busqueda: "",
+      isSearchFocused: false,
+      showConfirmModal: false,
+      showCustomerModal: false,
+      customers: [],
+      selectedCustomer: null,
+      handleQuantityChange: jest.fn(),
+      handleVentaNormal: jest.fn(),
+      handleVentaFiado: jest.fn(),
+      confirmarVenta: jest.fn(),
+      confirmarVentaFiada: jest.fn(),
+      cancelarVenta: jest.fn(),
+      cancelarSeleccionCliente: jest.fn(),
+      setbusqueda: jest.fn(),
+      setIsSearchFocused: jest.fn(),
+      setShowConfirmModal: jest.fn(),
+      setShowCustomerModal: jest.fn(),
+      agregarProductoPorCodigoBarras: jest.fn(),
+    }));
+    
     rerender(<VentasScreen />);
 
     // 6. Verificaciones
     expect(mockAgregarProductoAVenta).toHaveBeenCalledWith(mockProductoConStock);
 
     await waitFor(() => {
-    expect(screen.getByTestId(`product-name-${mockProductoConStock.id}`)).toHaveTextContent("Coca Cola");
-    expect(screen.getByTestId(`quantity-text-${mockProductoConStock.id}`)).toHaveTextContent("1");
+      expect(screen.getByTestId(`product-name-${mockProductoConStock.id}`)).toHaveTextContent("Coca Cola");
+      expect(screen.getByTestId(`quantity-text-${mockProductoConStock.id}`)).toHaveTextContent("1");
     });
   });
 });

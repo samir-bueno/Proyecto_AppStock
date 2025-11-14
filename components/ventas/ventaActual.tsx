@@ -8,10 +8,12 @@ const VentaActual = ({
   productosEnVenta,
   handleQuantityChange,
   handleVentaNormal,
+  handleVentaFiado, // ← Nueva prop agregada
 }: {
   productosEnVenta: VentaProduct[];
   handleQuantityChange: (productId: string, change: number) => void;
   handleVentaNormal: () => void;
+  handleVentaFiado: () => void; // ← Nueva prop agregada
 }) => {
   const { user } = useAuth();
 
@@ -96,6 +98,7 @@ const VentaActual = ({
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.actionButton, styles.fiadoButton]}
+                onPress={handleVentaFiado} // ← Agregado: conectar con la función
                 testID="venta-fiado-button"
               >
                 <ThemedText style={styles.actionButtonText}>

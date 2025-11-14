@@ -27,11 +27,35 @@ describe('Modal de confirmación de venta', () => {
     
     // Mock inicial
     (useVentas as jest.Mock).mockReturnValue({
+      // Estados principales
       ventaActual: mockProductosEnVenta,
       handleVentaNormal: mockHandleVentaNormal,
       filteredProducts: [],
       agregarProductoAVenta: jest.fn(),
       showConfirmModal: showConfirmModal,
+      
+      // Estados necesarios para evitar errores
+      user: { id: 'user1' },
+      loading: false,
+      busqueda: '',
+      isSearchFocused: false,
+      showCustomerModal: false,
+      customers: [],
+      selectedCustomer: null,
+      products: [],
+      
+      // Funciones necesarias para evitar errores
+      handleQuantityChange: jest.fn(),
+      handleVentaFiado: jest.fn(),
+      confirmarVenta: jest.fn(),
+      confirmarVentaFiada: jest.fn(),
+      cancelarVenta: jest.fn(),
+      cancelarSeleccionCliente: jest.fn(),
+      setbusqueda: jest.fn(),
+      setIsSearchFocused: jest.fn(),
+      setShowConfirmModal: jest.fn(),
+      setShowCustomerModal: jest.fn(),
+      agregarProductoPorCodigoBarras: jest.fn(),
     });
 
     const { rerender } = render(<VentasScreen />);
@@ -42,11 +66,35 @@ describe('Modal de confirmación de venta', () => {
 
     // Actualizar el mock después de presionar el botón
     (useVentas as jest.Mock).mockReturnValue({
+      // Estados principales
       ventaActual: mockProductosEnVenta,
       handleVentaNormal: mockHandleVentaNormal,
       filteredProducts: [],
       agregarProductoAVenta: jest.fn(),
-      showConfirmModal: true,
+      showConfirmModal: true, // ← Modal ahora visible
+      
+      // Estados necesarios para evitar errores
+      user: { id: 'user1' },
+      loading: false,
+      busqueda: '',
+      isSearchFocused: false,
+      showCustomerModal: false,
+      customers: [],
+      selectedCustomer: null,
+      products: [],
+      
+      // Funciones necesarias para evitar errores
+      handleQuantityChange: jest.fn(),
+      handleVentaFiado: jest.fn(),
+      confirmarVenta: jest.fn(),
+      confirmarVentaFiada: jest.fn(),
+      cancelarVenta: jest.fn(),
+      cancelarSeleccionCliente: jest.fn(),
+      setbusqueda: jest.fn(),
+      setIsSearchFocused: jest.fn(),
+      setShowConfirmModal: jest.fn(),
+      setShowCustomerModal: jest.fn(),
+      agregarProductoPorCodigoBarras: jest.fn(),
     });
 
     rerender(<VentasScreen />);

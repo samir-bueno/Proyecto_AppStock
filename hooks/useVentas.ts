@@ -1,6 +1,14 @@
 import { mapRecordToProduct } from "@/app/(tabs)/inventario";
 import { useAuth } from "@/contexts/AuthProvider";
-import { getProductsByOwner, processSale, Product, VentaProduct } from "@/services/pocketbaseServices";
+import {
+  Customer,
+  getCustomersByOwner,
+  getProductsByOwner,
+  processSale,
+  Product,
+  updateCustomer,
+  VentaProduct
+} from "@/services/pocketbaseServices";
 import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { Alert } from "react-native";
@@ -13,7 +21,10 @@ export const useVentas = () => {
   const [ventaActual, setVentaActual] = useState<VentaProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false); // Nuevo estado para el modal
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showCustomerModal, setShowCustomerModal] = useState(false);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
 
   const agregarProductoAVenta = (producto: Product) => {
     setVentaActual((prevVenta) => {
@@ -68,6 +79,16 @@ export const useVentas = () => {
     setLoading(false);
   };
 
+  const loadCustomers = async () => {
+    if (!user) return;
+    const result = await getCustomersByOwner(user.id);
+    if (result.success) {
+      setCustomers(result.data || []);
+    } else {
+      console.error("Error cargando clientes:", result.error);
+    }
+  };
+
   const agregarProductoPorCodigoBarras = (codigoBarras: string) => {
     const productoEncontrado = products.find(
       producto => producto.barcode === codigoBarras
@@ -91,7 +112,7 @@ export const useVentas = () => {
     }
   };
 
-  // Nueva función para manejar "Venta normal"
+  // Función para manejar "Venta normal"
   const handleVentaNormal = () => {
     if (ventaActual.length === 0) {
       Alert.alert("Error", "No hay productos en la venta");
@@ -100,7 +121,17 @@ export const useVentas = () => {
     setShowConfirmModal(true);
   };
 
-  // Función para confirmar la venta (se ejecuta cuando presionan Confirmar en el modal)
+  // Función para manejar "Venta Fiado"
+  const handleVentaFiado = () => {
+    if (ventaActual.length === 0) {
+      Alert.alert("Error", "No hay productos en la venta");
+      return;
+    }
+    loadCustomers(); // Cargar clientes antes de mostrar el modal
+    setShowCustomerModal(true);
+  };
+
+  // Función para confirmar la venta normal
   const confirmarVenta = async () => {
     if (!user) {
       Alert.alert("Error", "No hay usuario autenticado");
@@ -152,10 +183,72 @@ export const useVentas = () => {
     }
   };
 
-  // Función para cancelar la venta (se ejecuta cuando presionan Cancelar en el modal)
+  // Función para confirmar venta fiada
+  const confirmarVentaFiada = async (customer: Customer) => {
+    if (!user) {
+      Alert.alert("Error", "No hay usuario autenticado");
+      return;
+    }
+
+    try {
+      // Calcular total
+      const total = ventaActual.reduce((sum, product) => {
+        return sum + (product.quantityInSale * parseFloat(product.price));
+      }, 0);
+
+      // Preparar datos de la venta FIADA
+      const saleData = {
+        owner_id: user.id,
+        total: total.toString(),
+        sale_type: "fiado" as const, // ← VENTA FIADA
+        customer_id: customer.id // ← Cliente específico
+      };
+
+      // Preparar items de la venta
+      const saleItems = ventaActual.map(product => ({
+        product_id: product.id,
+        product_name: product.product_name,
+        quantity: product.quantityInSale,
+        unit_price: parseFloat(product.price),
+        subtotal: product.quantityInSale * parseFloat(product.price)
+      }));
+
+      // Procesar la venta fiada
+      const result = await processSale(saleData, saleItems);
+
+      if (result.success) {
+        // Actualizar deuda del cliente
+        const nuevaDeuda = parseFloat(customer.deuda) + total;
+        const updateResult = await updateCustomer(customer.id, {
+          deuda: nuevaDeuda.toString()
+        });
+
+        if (updateResult.success) {
+          Alert.alert("Éxito", `Venta fiada registrada para ${customer.name}`);
+          setVentaActual([]); // Limpiar la venta actual
+          setShowCustomerModal(false); // Cerrar modal de clientes
+          await loadProducts(); // Recargar productos
+        } else {
+          Alert.alert("Error", "Venta registrada pero error actualizando deuda");
+        }
+      } else {
+        Alert.alert("Error", result.error || "Error al procesar la venta fiada");
+      }
+    } catch (error) {
+      console.error("Error en confirmarVentaFiada:", error);
+      Alert.alert("Error", "No se pudo completar la venta fiada");
+    }
+  };
+
+  // Función para cancelar la venta normal
   const cancelarVenta = () => {
     setShowConfirmModal(false);
-    // No se limpia la venta actual, solo se cierra el modal
+  };
+
+  // Función para cancelar selección de cliente
+  const cancelarSeleccionCliente = () => {
+    setShowCustomerModal(false);
+    setSelectedCustomer(null);
   };
 
   useFocusEffect(
@@ -183,19 +276,26 @@ export const useVentas = () => {
     filteredProducts,
     ventaActual,
     isSearchFocused,
-    showConfirmModal, // Nuevo estado
+    showConfirmModal,
+    showCustomerModal,
+    customers,
+    selectedCustomer,
 
     // Funciones
     agregarProductoAVenta,
     handleQuantityChange,
-    handleVentaNormal, // Reemplaza handleVendido
-    confirmarVenta, // Nueva función
-    cancelarVenta, // Nueva función
+    handleVentaNormal,
+    handleVentaFiado,
+    confirmarVenta,
+    confirmarVentaFiada,
+    cancelarVenta,
+    cancelarSeleccionCliente,
 
     // Setters para estados específicos si los necesitas
     setbusqueda,
     setIsSearchFocused,
-    setShowConfirmModal, // Nuevo setter
+    setShowConfirmModal,
+    setShowCustomerModal,
 
     agregarProductoPorCodigoBarras,
     products,

@@ -10,8 +10,35 @@ describe("Ventas - Escanear Código de Barras", () => {
     jest.clearAllMocks();
 
     (useVentas as jest.Mock).mockReturnValue({
+      // Estados principales
       filteredProducts: [],
       ventaActual: [],
+      products: [],
+      
+      // Estados necesarios para evitar errores
+      user: { id: "test-user" },
+      loading: false,
+      busqueda: "",
+      isSearchFocused: false,
+      showConfirmModal: false,
+      showCustomerModal: false,
+      customers: [],
+      selectedCustomer: null,
+      
+      // Funciones necesarias para evitar errores
+      agregarProductoAVenta: jest.fn(),
+      handleQuantityChange: jest.fn(),
+      handleVentaNormal: jest.fn(),
+      handleVentaFiado: jest.fn(),
+      confirmarVenta: jest.fn(),
+      confirmarVentaFiada: jest.fn(),
+      cancelarVenta: jest.fn(),
+      cancelarSeleccionCliente: jest.fn(),
+      setbusqueda: jest.fn(),
+      setIsSearchFocused: jest.fn(),
+      setShowConfirmModal: jest.fn(),
+      setShowCustomerModal: jest.fn(),
+      agregarProductoPorCodigoBarras: jest.fn(),
     });
   });
 

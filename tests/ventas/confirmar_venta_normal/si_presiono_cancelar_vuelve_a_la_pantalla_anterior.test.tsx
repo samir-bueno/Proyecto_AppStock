@@ -15,15 +15,37 @@ describe('Cancelación de venta', () => {
     
     (useAuth as jest.Mock).mockReturnValue({ user: { id: 'user1' } });
     
-    // Mock - modal visible
+    // Mock INICIAL - modal visible
     (useVentas as jest.Mock).mockReturnValue({
+      // Estados principales
       ventaActual: [{ id: '1', product_name: 'Laptop', price: '1200', quantityInSale: 2 }],
       cancelarVenta: mockCancelarVenta,
       showConfirmModal: showConfirmModal,
       filteredProducts: [],
-      confirmarVenta: jest.fn(),
+      
+      // Estados necesarios para evitar errores
+      user: { id: 'user1' },
       loading: false,
+      busqueda: '',
       isSearchFocused: false,
+      showCustomerModal: false,
+      customers: [],
+      selectedCustomer: null,
+      products: [],
+      
+      // Funciones necesarias para evitar errores
+      agregarProductoAVenta: jest.fn(),
+      handleQuantityChange: jest.fn(),
+      handleVentaNormal: jest.fn(),
+      handleVentaFiado: jest.fn(),
+      confirmarVenta: jest.fn(),
+      confirmarVentaFiada: jest.fn(),
+      cancelarSeleccionCliente: jest.fn(),
+      setbusqueda: jest.fn(),
+      setIsSearchFocused: jest.fn(),
+      setShowConfirmModal: jest.fn(),
+      setShowCustomerModal: jest.fn(),
+      agregarProductoPorCodigoBarras: jest.fn(),
     });
 
     const { rerender } = render(<VentasScreen />);
@@ -36,13 +58,35 @@ describe('Cancelación de venta', () => {
 
     // Mock ACTUALIZADO - modal cerrado
     (useVentas as jest.Mock).mockReturnValue({
-      ventaActual: [{ id: '1', product_name: 'Laptop', price: '1200', quantityInSale: 2 }], // ✅ La venta se mantiene (no se procesa)
+      // Estados principales
+      ventaActual: [{ id: '1', product_name: 'Laptop', price: '1200', quantityInSale: 2 }],
       cancelarVenta: mockCancelarVenta,
-      showConfirmModal: false,
+      showConfirmModal: false, // ← Modal cerrado
       filteredProducts: [],
-      confirmarVenta: jest.fn(),
+      
+      // Estados necesarios para evitar errores
+      user: { id: 'user1' },
       loading: false,
+      busqueda: '',
       isSearchFocused: false,
+      showCustomerModal: false,
+      customers: [],
+      selectedCustomer: null,
+      products: [],
+      
+      // Funciones necesarias para evitar errores
+      agregarProductoAVenta: jest.fn(),
+      handleQuantityChange: jest.fn(),
+      handleVentaNormal: jest.fn(),
+      handleVentaFiado: jest.fn(),
+      confirmarVenta: jest.fn(),
+      confirmarVentaFiada: jest.fn(),
+      cancelarSeleccionCliente: jest.fn(),
+      setbusqueda: jest.fn(),
+      setIsSearchFocused: jest.fn(),
+      setShowConfirmModal: jest.fn(),
+      setShowCustomerModal: jest.fn(),
+      agregarProductoPorCodigoBarras: jest.fn(),
     });
 
     rerender(<VentasScreen />);

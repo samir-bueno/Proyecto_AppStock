@@ -67,6 +67,7 @@ describe('Confirmación de venta', () => {
     
     // Mock inicial con modal visible
     (useVentas as jest.Mock).mockReturnValue({
+      // Estados principales
       ventaActual: ventaActual,
       handleVentaNormal: jest.fn(),
       confirmarVenta: mockConfirmarVenta,
@@ -74,7 +75,28 @@ describe('Confirmación de venta', () => {
       filteredProducts: [],
       agregarProductoAVenta: jest.fn(),
       showConfirmModal: showConfirmModal,
-      loadProducts: jest.fn(), // Agregar esta función para recargar productos
+      loadProducts: jest.fn(),
+      
+      // Estados necesarios para evitar errores
+      user: { id: 'user1' },
+      loading: false,
+      busqueda: '',
+      isSearchFocused: false,
+      showCustomerModal: false,
+      customers: [],
+      selectedCustomer: null,
+      products: [],
+      
+      // Funciones necesarias para evitar errores
+      handleQuantityChange: jest.fn(),
+      handleVentaFiado: jest.fn(),
+      confirmarVentaFiada: jest.fn(),
+      cancelarSeleccionCliente: jest.fn(),
+      setbusqueda: jest.fn(),
+      setIsSearchFocused: jest.fn(),
+      setShowConfirmModal: jest.fn(),
+      setShowCustomerModal: jest.fn(),
+      agregarProductoPorCodigoBarras: jest.fn(),
     });
 
     const { rerender } = render(<VentasScreen />);
@@ -115,6 +137,7 @@ describe('Confirmación de venta', () => {
 
     // Actualizar el mock después de confirmar
     (useVentas as jest.Mock).mockReturnValue({
+      // Estados principales
       ventaActual: [], // Venta vacía después de confirmar
       handleVentaNormal: jest.fn(),
       confirmarVenta: mockConfirmarVenta,
@@ -123,6 +146,27 @@ describe('Confirmación de venta', () => {
       agregarProductoAVenta: jest.fn(),
       showConfirmModal: false, // Modal cerrado
       loadProducts: jest.fn(),
+      
+      // Estados necesarios para evitar errores
+      user: { id: 'user1' },
+      loading: false,
+      busqueda: '',
+      isSearchFocused: false,
+      showCustomerModal: false,
+      customers: [],
+      selectedCustomer: null,
+      products: [],
+      
+      // Funciones necesarias para evitar errores
+      handleQuantityChange: jest.fn(),
+      handleVentaFiado: jest.fn(),
+      confirmarVentaFiada: jest.fn(),
+      cancelarSeleccionCliente: jest.fn(),
+      setbusqueda: jest.fn(),
+      setIsSearchFocused: jest.fn(),
+      setShowConfirmModal: jest.fn(),
+      setShowCustomerModal: jest.fn(),
+      agregarProductoPorCodigoBarras: jest.fn(),
     });
 
     rerender(<VentasScreen />);

@@ -32,15 +32,35 @@ describe('Bloqueo de venta mayor al stock', () => {
 
     (useAuth as jest.Mock).mockReturnValue({ user: { id: 'user1' } });
     (useVentas as jest.Mock).mockReturnValue({
+      // Estados principales que usa el test
       ventaActual,
       handleQuantityChange: mockHandleQuantityChange,
       busqueda: '',
       loading: false,
       filteredProducts: [],
       isSearchFocused: false,
+      
+      // Funciones necesarias para que no falle
       agregarProductoAVenta: jest.fn(),
       setbusqueda: jest.fn(),
       setIsSearchFocused: jest.fn(),
+      
+      // Nuevos estados y funciones agregadas (para evitar errores)
+      user: { id: 'user1' },
+      showConfirmModal: false,
+      showCustomerModal: false,
+      customers: [],
+      selectedCustomer: null,
+      products: [],
+      handleVentaNormal: jest.fn(),
+      handleVentaFiado: jest.fn(),
+      confirmarVenta: jest.fn(),
+      confirmarVentaFiada: jest.fn(),
+      cancelarVenta: jest.fn(),
+      cancelarSeleccionCliente: jest.fn(),
+      setShowConfirmModal: jest.fn(),
+      setShowCustomerModal: jest.fn(),
+      agregarProductoPorCodigoBarras: jest.fn(),
     });
 
     render(<VentasScreen />);

@@ -6,6 +6,7 @@ import React from 'react';
 
 const mockHandleQuantityChange = jest.fn();
 const mockHandleVentaNormal = jest.fn();
+const mockHandleVentaFiado = jest.fn(); // ← Nueva función agregada
 
 describe('VentaActual - Botones de venta', () => {
   beforeEach(() => {
@@ -32,6 +33,7 @@ describe('VentaActual - Botones de venta', () => {
         productosEnVenta={mockProductosEnVenta}
         handleQuantityChange={mockHandleQuantityChange}
         handleVentaNormal={mockHandleVentaNormal}
+        handleVentaFiado={mockHandleVentaFiado} // ← Nueva prop agregada
       />,
       {wrapper: AuthProvider}
     );
