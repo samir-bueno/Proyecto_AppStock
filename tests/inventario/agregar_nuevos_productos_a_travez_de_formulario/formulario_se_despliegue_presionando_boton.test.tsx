@@ -1,6 +1,7 @@
 import InventarioScreen from "@/app/(tabs)/inventario";
 import { AuthProvider } from "@/contexts/AuthProvider";
 import { getProductsByOwner } from "@/services/pocketbaseServices";
+import { NavigationContainer } from "@react-navigation/native";
 import {
   fireEvent,
   render,
@@ -39,8 +40,14 @@ describe("Despliegue del formulario al toco el boton Agregar Producto", () => {
   });
 
   test("Al tocar el botón 'Agregar Producto', se despliega un formulario para escribir los datos", async () => {
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
+      <NavigationContainer>
+        <AuthProvider>{children}</AuthProvider>
+      </NavigationContainer>
+    );
+
     render(<InventarioScreen />, {
-      wrapper: AuthProvider,
+      wrapper: Wrapper,
     });
 
     await waitFor(() => {

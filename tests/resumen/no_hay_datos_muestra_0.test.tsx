@@ -1,5 +1,6 @@
 import Resumen from "@/app/(tabs)/resumen";
 import { AuthProvider } from "@/contexts/AuthProvider";
+import { NavigationContainer } from "@react-navigation/native";
 import { render, screen, waitFor } from "@testing-library/react-native";
 
 
@@ -66,7 +67,15 @@ describe("Pantalla de resumen", () => {
    );
 
 
-   render(<Resumen />, { wrapper: AuthProvider });
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
+      <NavigationContainer>
+        <AuthProvider>{children}</AuthProvider>
+      </NavigationContainer>
+    );
+
+    render(<Resumen />, {
+      wrapper: Wrapper,
+    });
 
 
    await waitFor(() => {

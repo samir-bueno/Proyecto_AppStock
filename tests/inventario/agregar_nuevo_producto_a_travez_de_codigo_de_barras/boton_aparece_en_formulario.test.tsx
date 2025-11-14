@@ -1,6 +1,7 @@
 import InventarioScreen from "@/app/(tabs)/inventario";
 import { AuthProvider } from "@/contexts/AuthProvider";
 import { getProductsByOwner } from "@/services/pocketbaseServices";
+import { NavigationContainer } from "@react-navigation/native";
 import {
   fireEvent,
   render,
@@ -31,15 +32,21 @@ describe("Inventario - Botón de cámara", () => {
       data: [],
     });
   });
-
   test("TIene que haber un boton o icono de camara", async () => {
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
+      <NavigationContainer>
+        <AuthProvider>{children}</AuthProvider>
+      </NavigationContainer>
+    );
+
     render(<InventarioScreen />, {
-      wrapper: AuthProvider,
+      wrapper: Wrapper,
     });
 
     await waitFor(() => {
       expect(screen.queryByText("Cargando productos...")).toBeNull();
     });
+
 
     // Abrir formulario
     fireEvent.press(screen.getByText("Agregar Producto"));
@@ -50,5 +57,4 @@ describe("Inventario - Botón de cámara", () => {
 
     // Verificar que el botón de cámara está presente
     expect(screen.getByTestId("camera-button")).toBeTruthy();
-  });
-});
+  })});

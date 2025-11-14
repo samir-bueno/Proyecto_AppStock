@@ -1,9 +1,10 @@
 import FiadoScreen from "@/app/(tabs)/fiados";
-import { render, screen } from "@testing-library/react-native";
+import { render, screen, waitFor } from "@testing-library/react-native";
 import React from "react";
 
 import * as AuthProvider from "@/contexts/AuthProvider";
 import * as ApiService from "@/services/pocketbaseServices";
+import { NavigationContainer } from "@react-navigation/native";
 
 // --- Servicios a mockear ---
 jest.mock("@/contexts/AuthProvider");
@@ -37,9 +38,13 @@ describe("Editar cliente fiado - boton", () => {
       ],
     });
 
-    render(<FiadoScreen />);
+    render(<FiadoScreen />, {
+      wrapper: NavigationContainer
+    });
 
-    expect(await screen.findByText("Juan Perez"));
+    await waitFor(() => {
+      expect(screen.getByText("Juan Perez")).toBeTruthy();
+    });
 
     const botonEditar = screen.getByTestId("boton-editar");
     expect(botonEditar).toBeTruthy();

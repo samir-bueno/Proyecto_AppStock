@@ -1,11 +1,12 @@
 import InventarioScreen from "@/app/(tabs)/inventario";
 import { AuthProvider } from "@/contexts/AuthProvider";
 import { getProductsByOwner, updateProduct } from "@/services/pocketbaseServices";
+import { NavigationContainer } from "@react-navigation/native";
 import {
-    fireEvent,
-    render,
-    screen,
-    waitFor
+  fireEvent,
+  render,
+  screen,
+  waitFor
 } from "@testing-library/react-native";
 
 // Mock de los servicios de PocketBase
@@ -80,8 +81,14 @@ describe("Como operario Deseo ver la lista de productos y poder modificar su sto
       });
     });
     
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
+      <NavigationContainer>
+        <AuthProvider>{children}</AuthProvider>
+      </NavigationContainer>
+    );
+
     render(<InventarioScreen />, {
-      wrapper: AuthProvider,
+      wrapper: Wrapper,
     });
 
     // Esperamos a que cargue los productos

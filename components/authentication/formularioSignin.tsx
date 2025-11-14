@@ -1,65 +1,92 @@
 import { ThemedText } from "@/components/ThemedText";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Image } from "expo-image";
 import { Link } from "expo-router";
 import React from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Image,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { z } from "zod";
-// Define Zod schema for form validation
 
-const schema = z.object({
-  email: z
-    .email({ message: "El campo 'email' debe ser un correo válido" })
-    .min(1, { message: "El campo 'email' es obligatorio" }),
-  contraseña: z
-    .string({ message: "El campo 'contraseña' es obligatorio" })
-    .min(8, {
-      message: "El campo 'contraseña' debe contener al menos 8 caracteres",
-    }),
-});
-const FormularioLogin = ({
+// Schema de validación (tomado de tu useSigninForm)
+export const signupSchema = z
+  .object({
+    nombre: z.string("El campo 'nombre' es obligatorio").min(2, "El campo 'nombre' debe contener al menos 2 caracteres"),
+    email: z
+      .email("El campo 'email' debe ser un correo válido")
+      .min(1, "El campo 'email' es obligatorio"),
+    contraseña: z
+      .string("El campo 'contraseña' es obligatorio")
+      .min(8, "El campo 'contraseña' debe contener al menos 8 caracteres"),
+    confirmacion: z.string("El campo 'confirmación' es obligatorio"),
+  })
+  .refine((data) => data.contraseña === data.confirmacion, {
+    message: "Las contraseñas no coinciden",
+    path: ["confirmacion"],
+  });
+
+export type SignupFormData = z.infer<typeof signupSchema>;
+
+const FormularioSignin = ({
   alGuardarLosDatosDelFormulario,
   cargando,
   errorServidor,
 }: {
-  alGuardarLosDatosDelFormulario: (data: z.infer<typeof schema>) => void;
+  alGuardarLosDatosDelFormulario: (data: SignupFormData) => void;
   cargando: boolean;
-  errorServidor: string | null;
+  errorServidor: string | undefined;
 }) => {
-  // Initialize the form with React Hook Form and Zod schema resolver
-
   const {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm({ resolver: zodResolver(schema) });
-  const onSubmit = (data: z.infer<typeof schema>) => {
+  } = useForm<SignupFormData>({ resolver: zodResolver(signupSchema) });
+
+  const onSubmit = (data: SignupFormData) => {
     alGuardarLosDatosDelFormulario(data);
   };
+
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
-              {errorServidor && (
-                <View style={styles.errorContainer}>
-                  <Text style={styles.errorText}>{errorServidor}</Text>
-                </View>
-              )}
-
+        {errorServidor && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{errorServidor}</Text>
+          </View>
+        )}
         <Image
           style={styles.image}
           source={require("@/assets/images/appStock.png")}
-          />
-        </View>
-      <ThemedText style={styles.modalTitle}>Iniciar sesión</ThemedText>
+        />        
+      </View>
+      <ThemedText style={styles.modalTitle}>Crear Cuenta</ThemedText> 
       <View>
-        {/* Primer campo */}
+        {/* Campo: Nombre */}
+        <Controller
+          control={control}
+          name="nombre"
+          render={({ field: { onChange, onBlur, value, ref } }) => (
+            <TextInput
+              style={styles.inpu}
+              onBlur={onBlur}
+              onChangeText={onChange}
+              value={value}
+              placeholder="Nombre"
+              ref={ref}
+              placeholderTextColor="#999"
+              autoCapitalize="words"
+            />
+          )}
+        />
+        {errors.nombre && (
+          <Text style={styles.error}>{errors.nombre.message}</Text>
+        )}
+        {/* Campo: Email */}
         <Controller
           control={control}
           name="email"
@@ -69,15 +96,18 @@ const FormularioLogin = ({
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}
-              placeholder="Email"
+              placeholder="Correo electrónico"
               ref={ref}
               placeholderTextColor="#999"
+              keyboardType="email-address"
+              autoCapitalize="none"
             />
           )}
         />
         {errors.email && (
           <Text style={styles.error}>{errors.email.message}</Text>
         )}
+        {/* Campo: Contraseña */}
         <Controller
           control={control}
           name="contraseña"
@@ -97,27 +127,48 @@ const FormularioLogin = ({
         {errors.contraseña && (
           <Text style={styles.error}>{errors.contraseña.message}</Text>
         )}
+        {/* Campo: Confirmar Contraseña */}
+        <Controller
+          control={control}
+          name="confirmacion"
+          render={({ field: { onChange, onBlur, value, ref } }) => (
+            <TextInput
+              style={styles.inpu}
+              onBlur={onBlur}
+              onChangeText={onChange}
+              value={value}
+              placeholder="Confirmar contraseña"
+              ref={ref}
+              placeholderTextColor="#999"
+              secureTextEntry
+            />
+          )}
+        />
+        {errors.confirmacion && (
+          <Text style={styles.error}>{errors.confirmacion.message}</Text>
+        )}
         <TouchableOpacity
           style={[styles.modalButton, styles.saveButton]}
           onPress={handleSubmit(onSubmit)}
           disabled={cargando}
         >
           <ThemedText style={styles.saveButtonText}>
-            {cargando ? "Ingresando..." : "Ingresar"}
+            {cargando ? "Creando cuenta..." : "Registrarse"}
           </ThemedText>
         </TouchableOpacity>
         <View style={styles.footer}>
           <ThemedText style={styles.footerText}>
-            ¿No tienes una cuenta?
+            ¿Ya tienes una cuenta?
           </ThemedText>
-          <Link href="/(Auth)/signin" style={styles.link}>
-            <ThemedText type="link">Crea una</ThemedText>
+          <Link href="/(Auth)/login" style={styles.link}>
+           <ThemedText type="link">Iniciar Sesión</ThemedText>
           </Link>
         </View>
       </View>
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   container: { padding: 20 },
   input: {
@@ -178,7 +229,7 @@ const styles = StyleSheet.create({
   saveButtonText: { color: "white", fontWeight: "bold" },
   image: { borderRadius: 100, width: 60, height: 60, opacity: 0.8 },
   imageContainer: { alignItems: "center", borderRadius: 100 },
-    errorContainer: {
+  errorContainer: {
     backgroundColor: "#f8d7da",
     borderColor: "#f5c6cb",
     borderWidth: 1,
@@ -191,4 +242,5 @@ const styles = StyleSheet.create({
   },
   errorText: { color: "#721c24", flex: 1 },
 });
-export default FormularioLogin;
+
+export default FormularioSignin;

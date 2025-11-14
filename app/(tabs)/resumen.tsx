@@ -8,9 +8,10 @@ import {
   getTotalGain,
 } from "@/services/pocketbaseServices";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import { Alert, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useCallback, useState } from "react";
+import { ActivityIndicator, Alert, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function Resumen() {
  const { user } = useAuth();
@@ -23,71 +24,78 @@ export default function Resumen() {
  const isAlert = true;
 
 
- const loadTotalDebt = async () => {
-   if (!user) return;
-   setLoading(true);
-   const result = await getTotalCustomerDebt(user.id);
-   if (result.success) {
-     const deuda_total = result.data;
-     setTotalDebt(deuda_total);
-     console.log(result.data);
-   } else {
-     console.error(result.error);
-   }
-   setLoading(false);
- };
+const loadAllData = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
+    setLoading(true);
 
- const loadTotalGain = async () => {
-   if (!user) return;
-   setLoading(true);
-   const result = await getTotalGain(user.id);
-   if (result.success) {
-     const ganancia_total = result.data;
-     setTotalGain(ganancia_total);
-   } else {
-     console.error(result.error);
-   }
-   setLoading(false);
- };
+    try {
+      const [
+        debtResult,
+        gainResult,
+        productsResult,
+        productsOutResult,
+      ] = await Promise.all([
+        getTotalCustomerDebt(user.id),
+        getTotalGain(user.id),
+        getProductsDisponibleByOwner(user.id),
+        getProductsPorAgotarse(user.id),
+      ]);
 
+      // Manejo de Deuda
+      if (debtResult.success) {
+        setTotalDebt(debtResult.data);
+      } else {
+        console.error("Error al cargar deuda:", debtResult.error);
+      }
 
- const loadTotalProducts = async () => {
-   if (!user) return;
-   setLoading(true);
-   const result = await getProductsDisponibleByOwner(user.id);
-   if (result.success) {
-     // Mapear los datos de PocketBase a nuestra interfaz Product
-     const mappedProducts = result.data?.length;
-     return setTotalProducts(mappedProducts);
-   } else {
-     Alert.alert("Error", result.error);
-   }
-   setLoading(false);
- };
+      if (gainResult.success) {
+        setTotalGain(gainResult.data);
+      } else {
+        console.error("Error al cargar ganancia:", gainResult.error);
+      }
 
+      if (productsResult.success) {
+        setTotalProducts(productsResult.data?.length || 0);
+      } else {
+        console.error("Error al cargar productos disponibles:", productsResult.error);
+        Alert.alert("Error", productsResult.error);
+      }
 
- const loadTotalProductsOut = async () => {
-   if (!user) return;
-   setLoading(true);
-   const result = await getProductsPorAgotarse(user.id);
-   if (result.success) {
-     const mappedProducts = result.data?.length;
-     return setTotalProductsOut(mappedProducts);
-   } else {
-     Alert.alert("error", result.error);
-   }
-   setLoading(false);
- };
+      if (productsOutResult.success) {
+        setTotalProductsOut(productsOutResult.data?.length || 0);
+      } else {
+        console.error("Error al cargar productos por agotarse:", productsOutResult.error);
+        Alert.alert("Error", productsOutResult.error);
+      }
+    } catch (error) {
+      console.error("Error general al cargar datos de resumen:", error);
+      Alert.alert("Error", "No se pudieron cargar todos los datos.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useFocusEffect(
+    useCallback(() => {
+      loadAllData();
 
- useEffect(() => {
-   loadTotalDebt();
-   loadTotalGain();
-   loadTotalProducts();
-   loadTotalProductsOut();
- }, [user]);
+      return () => {
+      };
+    }, [user]) 
+  );
 
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.safeArea, { justifyContent: "center", alignItems: "center" }]}>
+        <ActivityIndicator size="large" color="#333" />
+        <ThemedText>Cargando datos...</ThemedText>
+      </SafeAreaView>
+    );
+  }
 
  return (
    <SafeAreaView style={styles.safeArea}>

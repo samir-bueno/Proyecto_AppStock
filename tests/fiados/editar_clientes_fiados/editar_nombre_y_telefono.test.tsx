@@ -4,6 +4,7 @@ import React from "react";
 
 import * as AuthProvider from "@/contexts/AuthProvider";
 import * as ApiService from "@/services/pocketbaseServices";
+import { NavigationContainer } from "@react-navigation/native";
 
 jest.mock("@/contexts/AuthProvider");
 jest.mock("@/services/pocketbaseServices");
@@ -56,7 +57,9 @@ describe("Editar cliente fiado - guardar cambios", () => {
       data: clienteActualizado,
     });
 
-    render(<FiadoScreen />);
+    render(<FiadoScreen />, {
+      wrapper: NavigationContainer
+    });   
 
     await waitFor(() => {
       expect(screen.queryByText("Cargando clientes...")).toBeNull();

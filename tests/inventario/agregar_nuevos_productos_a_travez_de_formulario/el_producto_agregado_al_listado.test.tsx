@@ -1,11 +1,15 @@
 import InventarioScreen from "@/app/(tabs)/inventario";
 import { AuthProvider } from "@/contexts/AuthProvider";
-import { createProduct, getProductsByOwner } from "@/services/pocketbaseServices";
+import {
+  createProduct,
+  getProductsByOwner,
+} from "@/services/pocketbaseServices";
+import { NavigationContainer } from "@react-navigation/native";
 import {
   fireEvent,
   render,
   screen,
-  waitFor
+  waitFor,
 } from "@testing-library/react-native";
 
 // Mock de los servicios de PocketBase
@@ -47,11 +51,13 @@ describe("El producto se agrego al listado", () => {
 
     // Mock de getProductsByOwner para devolver el nuevo producto después de guardar
     (getProductsByOwner as jest.Mock)
-      .mockResolvedValueOnce({  // Primera llamada - lista vacía
+      .mockResolvedValueOnce({
+        // Primera llamada - lista vacía
         success: true,
         data: [],
       })
-      .mockResolvedValueOnce({  // Segunda llamada - después de agregar
+      .mockResolvedValueOnce({
+        // Segunda llamada - después de agregar
         success: true,
         data: [
           {
@@ -60,13 +66,19 @@ describe("El producto se agrego al listado", () => {
             quantity: "5",
             price: "1200",
             barcode: "123456789",
-            owner_id: "test-user-id"
-          }
+            owner_id: "test-user-id",
+          },
         ],
       });
 
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
+      <NavigationContainer>
+        <AuthProvider>{children}</AuthProvider>
+      </NavigationContainer>
+    );
+
     render(<InventarioScreen />, {
-      wrapper: AuthProvider,
+      wrapper: Wrapper,
     });
 
     await waitFor(() => {
@@ -79,10 +91,16 @@ describe("El producto se agrego al listado", () => {
       expect(screen.getByText("Agregar Nuevo Producto")).toBeTruthy();
     });
 
-    fireEvent.changeText(screen.getByPlaceholderText("Nombre del producto *"), "Laptop Gamer");
+    fireEvent.changeText(
+      screen.getByPlaceholderText("Nombre del producto *"),
+      "Laptop Gamer"
+    );
     fireEvent.changeText(screen.getByPlaceholderText("Cantidad *"), "5");
     fireEvent.changeText(screen.getByPlaceholderText("Precio *"), "1200");
-    fireEvent.changeText(screen.getByPlaceholderText("Codigo de barras (opcional)"), "123456789");
+    fireEvent.changeText(
+      screen.getByPlaceholderText("Codigo de barras (opcional)"),
+      "123456789"
+    );
 
     fireEvent.press(screen.getByText("Guardar"));
 

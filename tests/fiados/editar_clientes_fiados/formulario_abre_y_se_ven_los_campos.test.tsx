@@ -4,6 +4,7 @@ import React from "react";
 
 import * as AuthProvider from "@/contexts/AuthProvider";
 import * as ApiService from "@/services/pocketbaseServices";
+import { NavigationContainer } from "@react-navigation/native";
 
 // --- Servicios a mockear ---
 jest.mock("@/contexts/AuthProvider");
@@ -37,7 +38,9 @@ describe("Editar cliente fiado - formulario", () => {
       data: [clientePrueba],
     });
 
-    render(<FiadoScreen />);
+    render(<FiadoScreen />, {
+      wrapper: NavigationContainer
+    });
 
     await screen.findByText("Maria Garcia");
 

@@ -1,6 +1,7 @@
 import InventarioScreen from "@/app/(tabs)/inventario";
 import { AuthProvider } from "@/contexts/AuthProvider";
 import { getProductsByOwner } from "@/services/pocketbaseServices";
+import { NavigationContainer } from "@react-navigation/native";
 import {
   fireEvent,
   render,
@@ -45,10 +46,15 @@ describe("Inventario - Camara", () => {
   });
 
   test("Al tocar el boton de camara se abre la camara", async () => {
-    render(<InventarioScreen />, {
-      wrapper: AuthProvider,
-    });
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
+      <NavigationContainer>
+        <AuthProvider>{children}</AuthProvider>
+      </NavigationContainer>
+    );
 
+    render(<InventarioScreen />, {
+      wrapper: Wrapper,
+    });
     await waitFor(() => {
       expect(screen.queryByText("Cargando productos...")).toBeNull();
     });

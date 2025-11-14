@@ -1,11 +1,8 @@
 import InventarioScreen from "@/app/(tabs)/inventario";
 import { AuthProvider } from "@/contexts/AuthProvider";
 import { getProductsByOwner } from "@/services/pocketbaseServices";
-import {
-    render,
-    screen,
-    waitFor
-} from "@testing-library/react-native";
+import { NavigationContainer } from "@react-navigation/native";
+import { render, screen, waitFor } from "@testing-library/react-native";
 
 // Mock de los servicios de PocketBase
 jest.mock("@/services/pocketbaseServices", () => ({
@@ -28,48 +25,59 @@ jest.mock("@/contexts/AuthProvider", () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
-
 describe("Como operario Deseo ver la lista de productos y poder modificar su stock o eliminarlos Para mantener actualizado y limpio el inventario.", () => {
-  
   let getProductsByOwnerMock = getProductsByOwner as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
 
-    
-
-    (getProductsByOwnerMock).mockResolvedValue({
+    getProductsByOwnerMock.mockResolvedValue({
       success: true,
-      data: [{ id: "test-product-id", product_name: "Test Product", ownerId: "test-user-id", quantity: "1", price: "10", barcode: "1234567890" }],
+      data: [
+        {
+          id: "test-product-id",
+          product_name: "Test Product",
+          ownerId: "test-user-id",
+          quantity: "1",
+          price: "10",
+          barcode: "1234567890",
+        },
+      ],
     });
   });
 
   test("Se puede cambiar el nombre y el precio", async () => {
-    
     let currentProductData = {
-      id: "test-product-id", 
-      product_name: "Test Product", 
-      ownerId: "test-user-id", 
-      quantity: "1", 
-      price: "10", 
-      barcode: "1234567890"
+      id: "test-product-id",
+      product_name: "Test Product",
+      ownerId: "test-user-id",
+      quantity: "1",
+      price: "10",
+      barcode: "1234567890",
     };
 
-    getProductsByOwnerMock.mockImplementation(() => Promise.resolve({
-      success: true,
-      data: [currentProductData]
-    }));
-    
+    getProductsByOwnerMock.mockImplementation(() =>
+      Promise.resolve({
+        success: true,
+        data: [currentProductData],
+      })
+    );
+
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
+      <NavigationContainer>
+        <AuthProvider>{children}</AuthProvider>
+      </NavigationContainer>
+    );
+
     render(<InventarioScreen />, {
-      wrapper: AuthProvider,
+      wrapper: Wrapper,
     });
 
     await waitFor(() => {
       expect(screen.queryByText("Cargando productos...")).toBeNull();
     });
 
-    expect(screen.getByText("Control de inventario")).toBeTruthy(); 
+    expect(screen.getByText("Control de inventario")).toBeTruthy();
     expect(screen.getByTestId("delete-button"));
-
-}, 15000);
+  }, 15000);
 });

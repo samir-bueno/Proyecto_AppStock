@@ -1,6 +1,7 @@
 import InventarioScreen from "@/app/(tabs)/inventario";
 import { AuthProvider } from "@/contexts/AuthProvider";
 import { getProductsByOwner } from "@/services/pocketbaseServices";
+import { NavigationContainer } from "@react-navigation/native";
 import { render, screen, waitFor } from "@testing-library/react-native";
 
 // Mock de los servicios
@@ -50,8 +51,14 @@ describe("Productos agotados en inventario", () => {
       data: mockProduct,
     });
 
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
+      <NavigationContainer>
+        <AuthProvider>{children}</AuthProvider>
+      </NavigationContainer>
+    );
+
     render(<InventarioScreen />, {
-      wrapper: AuthProvider,
+      wrapper: Wrapper,
     });
 
     // Esperar a que carguen los productos

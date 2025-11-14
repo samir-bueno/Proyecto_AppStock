@@ -1,11 +1,15 @@
 import InventarioScreen from "@/app/(tabs)/inventario";
 import { AuthProvider } from "@/contexts/AuthProvider";
-import { deleteProduct, getProductsByOwner } from "@/services/pocketbaseServices";
 import {
-    fireEvent,
-    render,
-    screen,
-    waitFor
+  deleteProduct,
+  getProductsByOwner,
+} from "@/services/pocketbaseServices";
+import { NavigationContainer } from "@react-navigation/native";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
 } from "@testing-library/react-native";
 
 // Mock de los servicios de PocketBase
@@ -29,87 +33,101 @@ jest.mock("@/contexts/AuthProvider", () => ({
   AuthProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
-
 describe("Como operario Deseo ver la lista de productos y poder modificar su stock o eliminarlos Para mantener actualizado y limpio el inventario.", () => {
-  
   let getProductsByOwnerMock = getProductsByOwner as jest.Mock;
   let deleteProductMock = deleteProduct as jest.Mock;
-  
+
   beforeEach(() => {
     jest.clearAllMocks();
 
-    
-
-    (getProductsByOwnerMock).mockResolvedValue({
+    getProductsByOwnerMock.mockResolvedValue({
       success: true,
-      data: [{ id: "test-product-id", product_name: "Test Product", ownerId: "test-user-id", quantity: "1", price: "10", barcode: "1234567890" }],
+      data: [
+        {
+          id: "test-product-id",
+          product_name: "Test Product",
+          ownerId: "test-user-id",
+          quantity: "1",
+          price: "10",
+          barcode: "1234567890",
+        },
+      ],
     });
-    (deleteProductMock).mockResolvedValue({
-      success: true
+    deleteProductMock.mockResolvedValue({
+      success: true,
     });
   });
 
   test("Se puede cambiar el nombre y el precio", async () => {
-    
     let currentProductData: any = {
-      id: "test-product-id", 
-      product_name: "Test Product", 
-      ownerId: "test-user-id", 
-      quantity: "1", 
-      price: "10", 
-      barcode: "1234567890"
+      id: "test-product-id",
+      product_name: "Test Product",
+      ownerId: "test-user-id",
+      quantity: "1",
+      price: "10",
+      barcode: "1234567890",
     };
 
-    getProductsByOwnerMock.mockImplementation(() => Promise.resolve({
-      success: true,
-      data: [currentProductData]
-    }));
+    getProductsByOwnerMock.mockImplementation(() =>
+      Promise.resolve({
+        success: true,
+        data: [currentProductData],
+      })
+    );
 
-   deleteProductMock.mockImplementation(async (id) => {
-      if (id === "test-product-id") {
-            // Modificamos 'currentProductData' para simular la eliminación local
-            currentProductData = [];
-            
-            // volvemos a llamar a getProductsByOwner para actualizar la lista
-            getProductsByOwnerMock.mockResolvedValue({
-                success: true,
-                data: [], // Lista vacía
-            });
+    deleteProductMock.mockImplementation(async (id) => {
+      if (id === "test-product-id") {
+        // Modificamos 'currentProductData' para simular la eliminación local
+        currentProductData = [];
 
-            return ({
-              success: true,
-            });
-      }
-      return ({
-        success: false
-      });
-    });
-    
+        // volvemos a llamar a getProductsByOwner para actualizar la lista
+        getProductsByOwnerMock.mockResolvedValue({
+          success: true,
+          data: [], // Lista vacía
+        });
+
+        return {
+          success: true,
+        };
+      }
+      return {
+        success: false,
+      };
+    });
+
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
+      <NavigationContainer>
+        <AuthProvider>{children}</AuthProvider>
+      </NavigationContainer>
+    );
+
     render(<InventarioScreen />, {
-      wrapper: AuthProvider,
+      wrapper: Wrapper,
     });
 
     await waitFor(() => {
       expect(screen.queryByText("Cargando productos...")).toBeNull();
     });
 
-    expect(screen.getByText("Control de inventario")).toBeTruthy(); 
+    expect(screen.getByText("Control de inventario")).toBeTruthy();
     fireEvent.press(screen.getByTestId("delete-button"));
 
     await waitFor(() => {
-        expect(screen.getByText("¿Eliminar producto?")).toBeTruthy();
+      expect(screen.getByText("¿Eliminar producto?")).toBeTruthy();
     });
 
-    expect(screen.getByText('Estás a punto de eliminar el producto "Test Product". Esta acción no se puede deshacer.')).toBeTruthy();
+    expect(
+      screen.getByText(
+        'Estás a punto de eliminar el producto "Test Product". Esta acción no se puede deshacer.'
+      )
+    ).toBeTruthy();
     expect(screen.getByText("Cancelar")).toBeTruthy();
     expect(screen.getByText("Eliminar")).toBeTruthy();
 
     fireEvent.press(screen.getByText("Eliminar"));
 
     await waitFor(() => {
-        expect(screen.getByText("No tienes productos registrados")).toBeTruthy();
+      expect(screen.getByText("No tienes productos registrados")).toBeTruthy();
     });
-
-
-}, 15000);
+  }, 15000);
 });

@@ -4,6 +4,7 @@ import {
   getProductsByOwner,
   updateProduct,
 } from "@/services/pocketbaseServices";
+import { NavigationContainer } from "@react-navigation/native";
 import {
   fireEvent,
   render,
@@ -99,9 +100,15 @@ describe("Como operario Deseo ver la lista de productos y poder modificar su sto
    });
 
 
-   render(<InventarioScreen />, {
-     wrapper: AuthProvider,
-   });
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
+      <NavigationContainer>
+        <AuthProvider>{children}</AuthProvider>
+      </NavigationContainer>
+    );
+
+    render(<InventarioScreen />, {
+      wrapper: Wrapper,
+    });
 
 
    await waitFor(() => {

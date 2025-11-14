@@ -4,6 +4,7 @@ import {
   createProduct,
   getProductsByOwner,
 } from "@/services/pocketbaseServices";
+import { NavigationContainer } from "@react-navigation/native";
 import {
   fireEvent,
   render,
@@ -79,9 +80,15 @@ describe("Inventario - Autocompletado código de barras", () => {
         ],
       });
 
-    render(<InventarioScreen />, {
-      wrapper: AuthProvider,
-    });
+        const Wrapper = ({ children }: { children: React.ReactNode }) => (
+          <NavigationContainer>
+            <AuthProvider>{children}</AuthProvider>
+          </NavigationContainer>
+        );
+    
+        render(<InventarioScreen />, {
+          wrapper: Wrapper,
+        });
 
     await waitFor(() => {
       expect(screen.queryByText("Cargando productos...")).toBeNull();

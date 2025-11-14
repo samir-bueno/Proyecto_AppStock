@@ -4,7 +4,6 @@ import { useRouter } from "expo-router";
 import { useState } from "react";
 import { z } from "zod";
 
-// Schema de validación
 export const signupSchema = z
   .object({
     nombre: z.string().min(1, "El nombre es requerido"),
@@ -19,99 +18,52 @@ export const signupSchema = z
 
 export type SignupFormData = z.infer<typeof signupSchema>;
 
-
-// Tipo específico para errores que permite undefined
 type FormErrors = {
-  nombre?: string;
-  email?: string;
-  contraseña?: string;
-  confirmacion?: string;
   general?: string;
 };
 
 export const useSigninForm = () => {
   const router = useRouter();
   const { register } = useAuth();
-  const [formData, setFormData] = useState<SignupFormData>({
-    nombre: "",
-    email: "",
-    contraseña: "",
-    confirmacion: "",
-  });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
 
-  const validateForm = (): boolean => {
-    try {
-      signupSchema.parse(formData);
-      setErrors({});
-      return true;
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const newErrors: FormErrors = {};
-        error.issues.forEach((err: any) => {
-          if (err.path[0]) {
-            const fieldName = err.path[0] as keyof FormErrors;
-            newErrors[fieldName] = err.message;
-          }
-        });
-        setErrors(newErrors);
-      }
-      return false;
-    }
-  };
-
-  const handleCrearCuenta = async () => {
+  const handleCrearCuenta = async (data: SignupFormData) => {
     setErrors({});
 
-    if (!validateForm()) return;
-
     setLoading(true);
-    
+
     const { success, error } = await register({
-      name: formData.nombre.trim(),
-      email: formData.email.trim(),
-      password: formData.contraseña,
-      passwordConfirm: formData.confirmacion,
+      name: data.nombre.trim(),
+      email: data.email.trim(),
+      password: data.contraseña,
+      passwordConfirm: data.confirmacion,
     });
 
     if (success) {
       router.push("/(Auth)/login");
     } else {
-      // Detectar error de email duplicado
-      const emailTomado = await checkEmailExists(formData.email.trim());
+      const emailTomado = await checkEmailExists(data.email.trim());
       try {
-      if (emailTomado) {
-            setErrors({ general: "Este email ya está registrado" });
-            setLoading(false);
-            return; 
+        if (emailTomado) {
+          setErrors({ general: "Este email ya está registrado" });
+          setLoading(false);
+          return;
         }
-    } catch (e) {
+        setErrors({ general: error || "Ocurrió un error en el registro." });
+
+      } catch (e) {
         setErrors({ general: "Error al verificar el email. Intenta de nuevo." });
         setLoading(false);
         return;
-    }
+      }
     }
     setLoading(false);
   };
 
-  const handleFieldChange = (field: keyof SignupFormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-
-    // Limpiar errores al escribir
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
-    }
-    if (errors.general) {
-      setErrors((prev) => ({ ...prev, general: undefined }));
-    }
-  };
-
   return {
-    formData,
     loading,
     errors,
-    handleFieldChange,
     handleCrearCuenta,
   };
 };

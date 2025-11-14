@@ -8,7 +8,8 @@ import {
   getCustomersByOwner,
   updateCustomer,
 } from "@/services/pocketbaseServices";
-import { useEffect, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback, useState } from "react";
 import { Alert } from "react-native";
 
 export const useFiados = () => {
@@ -42,9 +43,12 @@ export const useFiados = () => {
   };
 
   // Cargar clientes al montar el componente
-  useEffect(() => {
-    loadClients();
-  }, [user]);
+  useFocusEffect(
+    useCallback(() => {
+      loadClients();
+      return () => {};
+    }, [user])
+  );
 
   const openDeleteModal = (client: Customer) => {
     setDeletingClient(client);

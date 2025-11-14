@@ -1,6 +1,7 @@
 import InventarioScreen from "@/app/(tabs)/inventario";
 import { AuthProvider } from "@/contexts/AuthProvider";
 import { getProductsByOwner } from "@/services/pocketbaseServices";
+import { NavigationContainer } from "@react-navigation/native";
 import {
   fireEvent,
   render,
@@ -45,10 +46,15 @@ describe("Inventario - Autocompletado código de barras", () => {
   });
 
   test("Una vez abierto la camara se escanea el codigo de barras de un producto y se pone automaticamente en el codigo de barras(campo)", async () => {
-    render(<InventarioScreen />, {
-      wrapper: AuthProvider,
-    });
+    const Wrapper = ({ children }: { children: React.ReactNode }) => (
+      <NavigationContainer>
+        <AuthProvider>{children}</AuthProvider>
+      </NavigationContainer>
+    );
 
+    render(<InventarioScreen />, {
+      wrapper: Wrapper,
+    });
     await waitFor(() => {
       expect(screen.queryByText("Cargando productos...")).toBeNull();
     });

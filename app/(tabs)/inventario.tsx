@@ -13,7 +13,8 @@ import {
   updateProduct,
 } from "@/services/pocketbaseServices";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -71,9 +72,12 @@ export default function InventarioScreen() {
  };
 
 
- useEffect(() => {
-   loadProducts();
- }, [user]);
+useFocusEffect(
+    useCallback(() => {
+      loadProducts();
+      return () => {};
+    }, [user])
+  );
 
 
  // Función para agregar nuevo producto

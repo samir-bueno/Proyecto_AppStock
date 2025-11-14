@@ -6,6 +6,7 @@ import React from "react";
 
 import * as AuthProvider from "@/contexts/AuthProvider";
 import * as ApiService from "@/services/pocketbaseServices";
+import { NavigationContainer } from "@react-navigation/native";
 
 // --- Servicios a mockear ---
 jest.mock("@/contexts/AuthProvider");
@@ -44,7 +45,9 @@ describe("FiadosScreen: Registrar nuevo cliente", () => {
       data: nuevoCliente,
     });
 
-    render(<FiadoScreen />);
+    render(<FiadoScreen />, {
+      wrapper: NavigationContainer
+    });
 
     const addButton = await screen.findByText("Agregar Cliente Fiado");
     fireEvent.press(addButton);

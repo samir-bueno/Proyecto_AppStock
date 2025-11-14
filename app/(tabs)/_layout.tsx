@@ -1,5 +1,5 @@
 import { useAuth } from "@/contexts/AuthProvider";
-import { FontAwesome } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Redirect, Tabs } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 
@@ -8,7 +8,7 @@ export default function TabLayout() {
   if (isLoading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color="#333" />
       </View>
     );
   }
@@ -22,13 +22,28 @@ export default function TabLayout() {
         options={{
           title: "ventas",
           tabBarIcon: ({ color }) => (
-            <FontAwesome name="cart-plus" size={22} color={color} />
+            <MaterialCommunityIcons name="cash-multiple" size={22} color={color} />
           ),
         }}
       />
-      <Tabs.Screen name="inventario" />
-      <Tabs.Screen name="fiados" />
-      <Tabs.Screen name="resumen" />
+      <Tabs.Screen name="inventario" options={{
+          title: "Inventario",
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="package-variant-closed" size={22} color={color} />
+          ),
+        }}/>
+      <Tabs.Screen name="fiados" options={{
+          title: "Fiados",
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="account-cash" size={22} color={color} />
+          ),
+        }}/>
+      <Tabs.Screen name="resumen" options={{
+          title: "Resumen",
+          tabBarIcon: ({ color }) => (
+            <MaterialCommunityIcons name="chart-bar" size={22} color={color} />
+          ),
+        }}/>
     </Tabs>
   );
 }
