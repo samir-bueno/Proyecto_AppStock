@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f1f1f1",
   },
   botonGuardar: {
-    backgroundColor: "#4a00e0",
+    backgroundColor: "#28a745",
   },
   textoBotonCancelar: {
     color: "#333",

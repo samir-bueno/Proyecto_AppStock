@@ -79,7 +79,7 @@ const SelectCustomerModal: React.FC<SelectCustomerModalProps> = ({
                     </ThemedText>
                   </View>
                   <ThemedText style={styles.customerDebt}>
-                    Deuda: ${parseFloat(customer.deuda).toFixed(2)}
+                    Deuda Actual: ${parseFloat(customer.deuda).toFixed(2)}
                   </ThemedText>
                 </TouchableOpacity>
               ))
@@ -141,7 +141,8 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     marginBottom: 10,
-    textAlign: "center"
+    textAlign: "center",
+    color: "#333"
   },
   totalText: {
     fontSize: 18,
@@ -207,7 +208,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#ff4444",
   },
   confirmButton: {
-    backgroundColor: "#2196F3",
+    backgroundColor: "#28a745",
   },
   disabledButton: {
     backgroundColor: "#cccccc",

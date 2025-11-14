@@ -1,12 +1,12 @@
 import { VentaProduct } from "@/services/pocketbaseServices";
 import React from "react";
 import {
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from "react-native";
 
 interface ConfirmSaleModalProps {
@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#ff4444",
   },
   confirmButton: {
-    backgroundColor: "#2196F3",
+    backgroundColor: "#28a745",
   },
   buttonText: {
     color: "white",
