@@ -12,83 +12,97 @@ import {
   View,
 } from "react-native";
 import { z } from "zod";
-// Define Zod schema for form validation
 
+// Define Zod schema for form validation
 const schema = z.object({
   email: z
+    .string()
     .email({ message: "El campo 'email' debe ser un correo válido" })
     .min(1, { message: "El campo 'email' es obligatorio" }),
   contraseña: z
-    .string({ message: "El campo 'contraseña' es obligatorio" })
+    .string()
+    .min(1, { message: "El campo 'contraseña' es obligatorio" })
     .min(8, {
       message: "El campo 'contraseña' debe contener al menos 8 caracteres",
     }),
 });
+
+// Define the props interface
+interface FormularioLoginProps {
+  alGuardarLosDatosDelFormulario: (data: z.infer<typeof schema>) => void;
+  cargando: boolean;
+  errorServidor: string | null;
+}
+
 const FormularioLogin = ({
   alGuardarLosDatosDelFormulario,
   cargando,
   errorServidor,
-}: {
-  alGuardarLosDatosDelFormulario: (data: z.infer<typeof schema>) => void;
-  cargando: boolean;
-  errorServidor: string | null;
-}) => {
-  // Initialize the form with React Hook Form and Zod schema resolver
-
+}: FormularioLoginProps) => {
   const {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm({ resolver: zodResolver(schema) });
+  } = useForm({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      email: "",
+      contraseña: "",
+    },
+  });
+
   const onSubmit = (data: z.infer<typeof schema>) => {
     alGuardarLosDatosDelFormulario(data);
   };
+
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
-              {errorServidor && (
-                <View style={styles.errorContainer}>
-                  <Text style={styles.errorText}>{errorServidor}</Text>
-                </View>
-              )}
+        {errorServidor && (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{errorServidor}</Text>
+          </View>
+        )}
 
         <Image
           style={styles.image}
           source={require("@/assets/images/appStock.png")}
-          />
-        </View>
+        />
+      </View>
       <ThemedText style={styles.modalTitle}>Iniciar sesión</ThemedText>
       <View>
-        {/* Primer campo */}
+        {/* Campo Email */}
         <Controller
           control={control}
           name="email"
-          render={({ field: { onChange, onBlur, value, ref } }) => (
+          render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
-              style={styles.inpu}
+              style={styles.input}
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}
               placeholder="Email"
-              ref={ref}
               placeholderTextColor="#999"
+              keyboardType="email-address"
+              autoCapitalize="none"
             />
           )}
         />
         {errors.email && (
           <Text style={styles.error}>{errors.email.message}</Text>
         )}
+
+        {/* Campo Contraseña */}
         <Controller
           control={control}
           name="contraseña"
-          render={({ field: { onChange, onBlur, value, ref } }) => (
+          render={({ field: { onChange, onBlur, value } }) => (
             <TextInput
-              style={styles.inpu}
+              style={styles.input}
               onBlur={onBlur}
               onChangeText={onChange}
               value={value}
               placeholder="Contraseña"
-              ref={ref}
               placeholderTextColor="#999"
               secureTextEntry
             />
@@ -97,15 +111,18 @@ const FormularioLogin = ({
         {errors.contraseña && (
           <Text style={styles.error}>{errors.contraseña.message}</Text>
         )}
+
+        {/* Botón de ingreso - SOLUCIÓN: Usar Text normal */}
         <TouchableOpacity
           style={[styles.modalButton, styles.saveButton]}
           onPress={handleSubmit(onSubmit)}
           disabled={cargando}
         >
-          <ThemedText style={styles.saveButtonText}>
+          <Text style={styles.saveButtonText}>
             {cargando ? "Ingresando..." : "Ingresar"}
-          </ThemedText>
+          </Text>
         </TouchableOpacity>
+
         <View style={styles.footer}>
           <ThemedText style={styles.footerText}>
             ¿No tienes una cuenta?
@@ -118,19 +135,39 @@ const FormularioLogin = ({
     </View>
   );
 };
+
 const styles = StyleSheet.create({
-  container: { padding: 20 },
-  input: {
-    height: 40,
-    borderColor: "gray",
-    borderWidth: 1,
-    marginBottom: 10,
-    paddingHorizontal: 8,
+  container: {
+    padding: 20,
+    flex: 1,
+    justifyContent: "center",
   },
-  footer: { marginTop: 20, alignItems: "center", gap: 10 },
-  footerText: { color: "#333", fontSize: 16 },
-  link: { paddingVertical: 10 },
-  error: { color: "red" },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ddd",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 15,
+    fontSize: 16,
+    backgroundColor: "#fff",
+  },
+  footer: {
+    marginTop: 20,
+    alignItems: "center",
+    gap: 10,
+  },
+  footerText: {
+    color: "#333",
+    fontSize: 16,
+  },
+  link: {
+    paddingVertical: 10,
+  },
+  error: {
+    color: "red",
+    marginBottom: 10,
+    fontSize: 14,
+  },
   modalTitle: {
     fontSize: 20,
     fontWeight: "bold",
@@ -138,57 +175,42 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#333",
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  modalContent: {
-    backgroundColor: "white",
-    borderRadius: 12,
-    padding: 20,
-    width: "100%",
-    maxWidth: 400,
-  },
-  inpu: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 15,
-    fontSize: 16,
-  },
-  modalButtons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 10,
-  },
   modalButton: {
-    flex: 1,
     padding: 15,
     borderRadius: 8,
     alignItems: "center",
-    marginHorizontal: 5,
+    marginTop: 10,
   },
-  cancelButton: { backgroundColor: "#f1f1f1" },
-  saveButton: { backgroundColor: "#28a745" },
-  cancelButtonText: { color: "#333", fontWeight: "bold" },
-  saveButtonText: { color: "white", fontWeight: "bold" },
-  image: { borderRadius: 100, width: 60, height: 60, opacity: 0.8 },
-  imageContainer: { alignItems: "center", borderRadius: 100 },
-    errorContainer: {
+  saveButton: {
+    backgroundColor: "#28a745",
+  },
+  saveButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  image: {
+    borderRadius: 100,
+    width: 60,
+    height: 60,
+    opacity: 0.8,
+  },
+  imageContainer: {
+    alignItems: "center",
+    borderRadius: 100,
+    marginBottom: 20,
+  },
+  errorContainer: {
     backgroundColor: "#f8d7da",
     borderColor: "#f5c6cb",
     borderWidth: 1,
     borderRadius: 5,
     padding: 15,
     marginBottom: 20,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
   },
-  errorText: { color: "#721c24", flex: 1 },
+  errorText: {
+    color: "#721c24",
+  },
 });
+
 export default FormularioLogin;
